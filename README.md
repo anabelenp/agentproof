@@ -11,11 +11,15 @@ AgentProof tests what traditional assertion-based testing cannot: non-determinis
 | Phase | Component | Status |
 |---|---|---|
 | Phase 1 | Core infrastructure (config, errors, retry, audit, base, runner) | Complete |
-| Phase 2 | LLM evaluation — DeepEval integration, Anthropic SDK | Not started |
-| Phase 3 | RAG evaluation — Qdrant retrieval + generation quality | Not started |
-| Phase 4 | Routing validation — LiteLLM multi-model routing | Not started |
-| Phase 5 | Governance validators, streaming response validation | Not started |
-| Phase 6 | CLI (Typer), reporters (Rich + JSON), examples | Not started |
+| Phase 2 | LLM evaluation — DeepEval integration, Anthropic SDK | Complete |
+| Phase 3 | RAG evaluation — Qdrant retrieval + generation quality | Complete |
+| Phase 4 | Routing validation — LiteLLM multi-model routing | Complete |
+| Phase 5 | Governance validators, streaming response validation | Complete |
+| Phase 6 | Data layer — PostgreSQL + Redis validation | Complete |
+| Phase 7 | Graph validation — Neo4j / Memgraph | Not started |
+| Phase 8 | Connector validation — Nango ingestion | Not started |
+| Phase 9 | Infrastructure validation — Docker, GCP, CI | Not started |
+| Phase 10 | CLI (Typer), reporters (Rich + JSON), examples | Not started |
 
 ---
 
@@ -43,9 +47,20 @@ agentproof/
 │   │   ├── audit.py       # AuditLogger — JSONL + SHA-256 tamper evidence
 │   │   ├── base.py        # BaseEvaluator, ValidationResult
 │   │   └── runner.py      # TestRunner, TestRunSummary
-│   ├── evaluators/        # Phase 2–5
-│   ├── validators/        # Phase 5
-│   └── integrations/      # Phase 2–4
+│   ├── evaluators/
+│   │   ├── llm.py         # LLMEvaluator (relevance, faithfulness, hallucination)
+│   │   ├── rag.py         # RAGEvaluator (contextual recall/precision + generation)
+│   │   ├── routing.py     # RoutingValidator (correctness, fallback, consistency)
+│   │   └── streaming.py   # StreamingValidator (TTFT, throughput, completeness)
+│   ├── validators/
+│   │   ├── governance.py  # GovernanceValidator (trail, override, separation)
+│   │   └── data_layer.py  # DataLayerValidator (cache vs source consistency)
+│   └── integrations/
+│       ├── anthropic.py   # AnthropicIntegration (async SDK wrapper)
+│       ├── qdrant.py      # QdrantIntegration + QdrantEvaluator
+│       ├── litellm.py     # LiteLLMIntegration (async acompletion wrapper)
+│       ├── postgres.py    # PostgresIntegration + PostgresValidator
+│       └── redis.py       # RedisIntegration + RedisValidator
 └── tests/
     ├── unit/              # All mocked, fast — runs on every commit
     ├── integration/       # Requires live services — runs on PR merge

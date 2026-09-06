@@ -7,6 +7,7 @@ from .errors import (
     AgentProofError,
     AuditError,
     ConfigurationError,
+    DataLayerValidatorError,
     EvaluatorError,
     GovernanceValidatorError,
     IntegrationError,
@@ -17,7 +18,7 @@ from .errors import (
     StreamingValidatorError,
 )
 from .retry import RetryConfig, retry_async
-from .runner import TestRunSummary, TestRunner
+from .runner import TestRunner, TestRunSummary
 
 __all__ = [
     "AgentProofConfig",
@@ -27,6 +28,7 @@ __all__ = [
     "AuditLogger",
     "BaseEvaluator",
     "ConfigurationError",
+    "DataLayerValidatorError",
     "EvaluatorError",
     "GovernanceValidatorError",
     "IntegrationError",

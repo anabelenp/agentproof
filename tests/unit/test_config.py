@@ -3,9 +3,8 @@
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
-
 from agentproof.core.config import AgentProofConfig
+from pydantic import ValidationError
 
 
 def test_default_thresholds():
@@ -22,6 +21,23 @@ def test_default_sla():
     config = AgentProofConfig()
     assert config.max_ttft_seconds == 2.0
     assert config.min_token_throughput == 20.0
+    assert config.max_retrieval_latency_ms == 500.0
+    assert config.max_fallback_seconds == 5.0
+    assert config.routing_consistency_delta == 0.15
+    assert config.max_db_write_latency_ms == 200.0
+    assert config.ttl_tolerance_seconds == 5
+
+
+def test_default_data_layer_urls(monkeypatch):
+    monkeypatch.delenv("POSTGRES_URL", raising=False)
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    monkeypatch.delenv("POSTGRES_POOL_SIZE", raising=False)
+    monkeypatch.delenv("REDIS_TTL_SECONDS", raising=False)
+    config = AgentProofConfig()
+    assert config.postgres_url == "postgresql://localhost:5432/agentproof_test"
+    assert config.postgres_pool_size == 5
+    assert config.redis_url == "redis://localhost:6379"
+    assert config.redis_ttl_seconds == 3600
 
 
 def test_default_judge_model():
@@ -36,7 +52,10 @@ def test_default_retry():
     assert config.retry_max_delay == 60.0
 
 
-def test_default_api_keys_are_none():
+def test_default_api_keys_are_none(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("QDRANT_API_KEY", raising=False)
     config = AgentProofConfig()
     assert config.anthropic_api_key is None
     assert config.openai_api_key is None
@@ -71,6 +90,39 @@ def test_threshold_negative_raises():
 def test_ttft_zero_raises():
     with pytest.raises(ValidationError):
         AgentProofConfig(max_ttft_seconds=0.0)
+
+
+def test_retrieval_latency_zero_raises():
+    with pytest.raises(ValidationError):
+        AgentProofConfig(max_retrieval_latency_ms=0.0)
+
+
+def test_fallback_seconds_zero_raises():
+    with pytest.raises(ValidationError):
+        AgentProofConfig(max_fallback_seconds=0.0)
+
+
+def test_consistency_delta_above_one_raises():
+    with pytest.raises(ValidationError):
+        AgentProofConfig(routing_consistency_delta=1.5)
+
+
+def test_db_write_latency_zero_raises():
+    with pytest.raises(ValidationError):
+        AgentProofConfig(max_db_write_latency_ms=0.0)
+
+
+def test_postgres_pool_size_zero_raises():
+    with pytest.raises(ValidationError):
+        AgentProofConfig(postgres_pool_size=0)
+
+
+def test_env_var_sets_postgres_and_redis_urls(monkeypatch):
+    monkeypatch.setenv("POSTGRES_URL", "postgresql://ci:5432/test")
+    monkeypatch.setenv("REDIS_URL", "redis://ci:6379/0")
+    config = AgentProofConfig()
+    assert config.postgres_url == "postgresql://ci:5432/test"
+    assert config.redis_url == "redis://ci:6379/0"
 
 
 def test_max_retries_zero_raises():

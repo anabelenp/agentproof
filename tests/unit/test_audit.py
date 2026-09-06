@@ -178,6 +178,37 @@ async def test_verify_integrity_tampered_passed_flag(logger, entry):
 # ── new_audit_id ──────────────────────────────────────────────────────────────
 
 
+async def test_read_entries_empty_dir(tmp_path):
+    logger = AuditLogger(log_dir=tmp_path / "nope")
+    assert await logger.read_entries() == []
+
+
+async def test_read_entries_returns_logged_rows(logger, entry):
+    await logger.log(entry)
+    rows = await logger.read_entries()
+    assert len(rows) == 1
+    assert rows[0]["audit_id"] == entry.audit_id
+    assert rows[0]["metric"] == "faithfulness"
+
+
+async def test_verify_entry_data_accepts_logged_row(logger, entry):
+    await logger.log(entry)
+    rows = await logger.read_entries()
+    assert logger.verify_entry_data(rows[0]) is True
+
+
+async def test_verify_entry_data_rejects_missing_hash():
+    logger = AuditLogger(log_dir=".")
+    assert logger.verify_entry_data({"audit_id": "x", "score": 1}) is False
+
+
+async def test_verify_entry_data_rejects_tampered_row(logger, entry):
+    await logger.log(entry)
+    rows = await logger.read_entries()
+    rows[0]["score"] = 0.01
+    assert logger.verify_entry_data(rows[0]) is False
+
+
 def test_new_audit_id_is_valid_uuid():
     aid = new_audit_id()
     parsed = uuid.UUID(aid)

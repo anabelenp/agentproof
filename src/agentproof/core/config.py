@@ -41,6 +41,10 @@ class AgentProofConfig(BaseSettings):
 
     # ── External services ──────────────────────────────────────────────────────
     qdrant_url: str = "http://localhost:6333"
+    postgres_url: str = "postgresql://localhost:5432/agentproof_test"
+    postgres_pool_size: int = Field(default=5, ge=1, le=50)
+    redis_url: str = "redis://localhost:6379"
+    redis_ttl_seconds: int = Field(default=3600, ge=0)
 
     # ── Audit ─────────────────────────────────────────────────────────────────
     audit_log_dir: Path = Path("./audit_logs")
@@ -56,6 +60,11 @@ class AgentProofConfig(BaseSettings):
     # ── SLA ───────────────────────────────────────────────────────────────────
     max_ttft_seconds: float = Field(default=2.0, gt=0)
     min_token_throughput: float = Field(default=20.0, gt=0)
+    max_retrieval_latency_ms: float = Field(default=500.0, gt=0)
+    max_fallback_seconds: float = Field(default=5.0, gt=0)
+    routing_consistency_delta: float = Field(default=0.15, ge=0.0, le=1.0)
+    max_db_write_latency_ms: float = Field(default=200.0, gt=0)
+    ttl_tolerance_seconds: int = Field(default=5, ge=0)
 
     # ── Retry ─────────────────────────────────────────────────────────────────
     max_retries: int = Field(default=3, ge=1, le=10)

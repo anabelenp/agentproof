@@ -60,6 +60,10 @@ class GovernanceValidatorError(EvaluatorError):
     """Governance audit trail validation failure."""
 
 
+class DataLayerValidatorError(EvaluatorError):
+    """PostgreSQL / Redis data-layer validation failure."""
+
+
 class AuditError(AgentProofError):
     """Audit logging failure.
 

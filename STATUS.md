@@ -1,24 +1,31 @@
-## Current Status — 2026-05-25
+## Current Status — 2026-09-06
 
 ### Complete and runnable:
 - `src/agentproof/core/config.py` — `AgentProofConfig` with Pydantic validation, tested
 - `src/agentproof/core/errors.py` — full exception hierarchy, tested
 - `src/agentproof/core/retry.py` — `RetryConfig`, `retry_async` with exponential backoff + jitter, tested
-- `src/agentproof/core/audit.py` — `AuditLogger` (JSONL + SHA-256 + integrity verify), tested
+- `src/agentproof/core/audit.py` — `AuditLogger` (JSONL + SHA-256 + integrity verify + read_entries), tested
 - `src/agentproof/core/base.py` — `ValidationResult`, `BaseEvaluator` with helper methods, tested
 - `src/agentproof/core/runner.py` — `TestRunner` (parallel/sequential), `TestRunSummary`, tested
-- `tests/unit/` — 91 unit tests, all mocked, all passing in 0.71s
-- `TUTORIAL.md` — comprehensive onboarding guide for QA engineers new to AI evaluation
+- `src/agentproof/integrations/anthropic.py` — `AnthropicIntegration` async SDK wrapper, tested
+- `src/agentproof/evaluators/llm.py` — `LLMEvaluator` (relevance, faithfulness, hallucination), tested
+- `src/agentproof/integrations/qdrant.py` — `QdrantIntegration` + `QdrantEvaluator` (precision@k, recall@k, integrity, latency), tested
+- `src/agentproof/evaluators/rag.py` — `RAGEvaluator` (contextual recall/precision + generation via LLMEvaluator), tested
+- `src/agentproof/integrations/litellm.py` — `LiteLLMIntegration` async wrapper, tested
+- `src/agentproof/evaluators/routing.py` — `RoutingValidator` (correctness, fallback, consistency, cost routing), tested
+- `src/agentproof/validators/governance.py` — `GovernanceValidator` (completeness, override, separation, tamper evidence), tested
+- `src/agentproof/evaluators/streaming.py` — `StreamingValidator` (TTFT, throughput, completeness, degradation, errors), tested
+- `src/agentproof/integrations/postgres.py` — `PostgresIntegration` + `PostgresValidator` (schema, state, transactions, silent writes, write latency), tested
+- `src/agentproof/integrations/redis.py` — `RedisIntegration` + `RedisValidator` (cache correctness, TTL, invalidation, session state), tested
+- `src/agentproof/validators/data_layer.py` — `DataLayerValidator` (dispatch + cache vs PostgreSQL source consistency), tested
+- `tests/unit/` — 436 unit tests, all mocked, all passing
 
 ### Partially implemented:
 - None
 
 ### Not started:
-- Phase 2: `src/agentproof/integrations/anthropic.py` + `src/agentproof/evaluators/llm.py`
-- Phase 3: `src/agentproof/integrations/qdrant.py` + `src/agentproof/evaluators/rag.py`
-- Phase 4: `src/agentproof/integrations/litellm.py` + `src/agentproof/evaluators/routing.py`
-- Phase 5: `src/agentproof/validators/governance.py` + `src/agentproof/evaluators/streaming.py`
-- Phase 6: `src/agentproof/cli.py` + reporters + examples
+- Phase 7: graph validation (neo4j)
+- Phase 8–10: connectors, infrastructure, CLI/examples
 
 ### Next priority:
-Phase 2 — `src/agentproof/integrations/anthropic.py` (async Anthropic SDK wrapper) then `src/agentproof/evaluators/llm.py` (DeepEval `AnswerRelevancyMetric` + `FaithfulnessMetric` + `HallucinationMetric`)
+Phase 7 — `src/agentproof/integrations/neo4j.py` + `src/agentproof/validators/graph.py`

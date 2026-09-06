@@ -1,11 +1,11 @@
 """Unit tests for the AgentProof exception hierarchy."""
 
 import pytest
-
 from agentproof.core.errors import (
     AgentProofError,
     AuditError,
     ConfigurationError,
+    DataLayerValidatorError,
     EvaluatorError,
     GovernanceValidatorError,
     IntegrationError,
@@ -15,7 +15,6 @@ from agentproof.core.errors import (
     RoutingValidatorError,
     StreamingValidatorError,
 )
-
 
 # ── Hierarchy ─────────────────────────────────────────────────────────────────
 
@@ -38,6 +37,7 @@ def test_evaluator_subclasses_inherit_from_evaluator_error():
         RoutingValidatorError,
         StreamingValidatorError,
         GovernanceValidatorError,
+        DataLayerValidatorError,
     ]:
         assert issubclass(cls, EvaluatorError)
 

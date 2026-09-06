@@ -171,6 +171,52 @@ class AuditLogger:
 
         return False
 
+    def verify_entry_data(self, entry_data: dict[str, Any]) -> bool:
+        """Verify the SHA-256 hash on a parsed JSONL entry dict.
+
+        Args:
+            entry_data: One deserialized audit log object.
+
+        Returns:
+            True if `entry_hash` is present and matches the computed hash.
+        """
+        stored = entry_data.get("entry_hash", "")
+        if not stored:
+            return False
+        return stored == self._compute_hash(entry_data)
+
+    async def read_entries(self) -> list[dict[str, Any]]:
+        """Load every JSONL audit entry under the log directory.
+
+        Reads all `audit_YYYY-MM-DD.jsonl` files. Malformed lines are skipped.
+        Returns an empty list if the directory does not exist.
+
+        Returns:
+            List of deserialized entry dicts, oldest file first.
+        """
+        if not self._log_dir.exists():
+            return []
+
+        paths: list[Path] = await asyncio.to_thread(
+            lambda: sorted(self._log_dir.glob("audit_*.jsonl"))
+        )
+        entries: list[dict[str, Any]] = []
+        for path in paths:
+            try:
+                lines: list[str] = await asyncio.to_thread(self._read_lines, path)
+            except FileNotFoundError:
+                continue
+            for raw in lines:
+                raw = raw.strip()
+                if not raw:
+                    continue
+                try:
+                    parsed: dict[str, Any] = json.loads(raw)
+                except json.JSONDecodeError:
+                    continue
+                entries.append(parsed)
+        return entries
+
     @staticmethod
     def _read_lines(path: Path) -> list[str]:
         """Synchronous file read, run via asyncio.to_thread."""

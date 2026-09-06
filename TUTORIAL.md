@@ -46,7 +46,7 @@ AgentProof is an evaluation framework built specifically for this gap. Instead o
 
 **What it is:** A unified Python interface for calling over 100 different LLM providers — Anthropic, OpenAI, Google, Cohere, Mistral, and more — through a single API.
 
-**Why AgentProof uses it:** Phase 4 will validate multi-model routing — testing that an orchestration layer correctly sends legal queries to one model, medical queries to another, and falls back gracefully when a provider is unavailable. LiteLLM makes this testable without requiring separate SDK calls for each provider.
+**Why AgentProof uses it:** Phase 4 validates multi-model routing — testing that an orchestration layer correctly sends legal queries to one model, medical queries to another, and falls back gracefully when a provider is unavailable. LiteLLM makes this testable without requiring separate SDK calls for each provider.
 
 **Traditional QA analogy:** Think of LiteLLM like a database abstraction layer (SQLAlchemy). You write one query in a standard dialect, and the driver handles translation to MySQL, PostgreSQL, or SQLite. LiteLLM does the same for LLM APIs.
 
@@ -76,7 +76,7 @@ AgentProof is an evaluation framework built specifically for this gap. Instead o
 
 **What it is:** A vector database — stores and queries embeddings (numerical representations of text) rather than traditional rows and columns. Querying it returns documents semantically similar to a search query, not just lexically matching.
 
-**Why AgentProof uses it:** RAG pipelines retrieve context from a vector database before generating a response. Phase 3 will test retrieval quality: did the pipeline retrieve the right documents? Were they relevant? Was anything important missed?
+**Why AgentProof uses it:** RAG pipelines retrieve context from a vector database before generating a response. Phase 3 tests retrieval quality: did the pipeline retrieve the right documents? Were they relevant? Was anything important missed?
 
 **Traditional QA analogy:** Think of Qdrant like a full-text search engine (Elasticsearch) used as a test fixture store. Instead of matching keywords, it matches meaning — so testing it requires measuring recall and precision rather than exact result set comparison.
 
@@ -96,7 +96,7 @@ AgentProof is an evaluation framework built specifically for this gap. Instead o
 
 **What it is:** A battle-tested open-source relational database, used here via `asyncpg` — a high-performance async Python driver.
 
-**Why AgentProof uses it:** Phase 6 will test data layer validators — ensuring that agent-generated outputs persisted to a database meet schema, integrity, and consistency requirements.
+**Why AgentProof uses it:** Phase 6 tests data layer validators — ensuring that agent-generated outputs persisted to a database meet schema, integrity, and consistency requirements.
 
 **Traditional QA analogy:** Standard database integration testing. Exactly what QA engineers already know.
 
@@ -106,7 +106,7 @@ AgentProof is an evaluation framework built specifically for this gap. Instead o
 
 **What it is:** An in-memory key-value store used widely for caching, session state, and message queuing.
 
-**Why AgentProof uses it:** AI agents often cache prompt outputs to reduce latency and cost. Phase 6 will validate cache correctness — for example, that a cached response is still valid for the same semantic query after a model update.
+**Why AgentProof uses it:** AI agents often cache prompt outputs to reduce latency and cost. Phase 6 validates cache correctness — for example, that a cached response is still valid for the same semantic query after a model update.
 
 **Traditional QA analogy:** Cache invalidation testing. The problem is familiar; AgentProof extends it to semantic equivalence rather than exact key matching.
 
@@ -236,7 +236,7 @@ AgentProof uses DeepEval to run this pattern. The default judge model is `claude
 
 RAG (Retrieval-Augmented Generation) is the pattern where an AI agent, before generating a response, retrieves relevant documents from a knowledge base (usually a vector database) and includes them in its context window. This grounds the response in actual source material rather than the model's parametric memory.
 
-Retrieval quality matters because the agent can only answer as well as the documents it retrieves. If the retrieval step returns irrelevant or incomplete documents, even a perfect generation step cannot compensate. This is why Phase 3 will test the retrieval and generation stages independently.
+Retrieval quality matters because the agent can only answer as well as the documents it retrieves. If the retrieval step returns irrelevant or incomplete documents, even a perfect generation step cannot compensate. This is why Phase 3 tests the retrieval and generation stages independently.
 
 > ⚠️ **AI TESTING DIFFERENCE:** In traditional QA, test data is exact — you query a database and get specific rows. In RAG, retrieval is approximate and ranked by semantic similarity. Testing it requires measuring recall (did we get the right documents?) and precision (did we get only relevant documents?), not exact result set comparison.
 
@@ -270,27 +270,27 @@ agentproof/
 │   │   ├── audit.py             # AuditLogger: JSONL + SHA-256 tamper evidence
 │   │   ├── base.py              # BaseEvaluator (abstract) + ValidationResult
 │   │   └── runner.py            # TestRunner + TestRunSummary
-│   ├── integrations/            # Phase 2–9 — NOT YET IMPLEMENTED
-│   │   ├── anthropic.py         # Async Anthropic SDK wrapper (Phase 2)
-│   │   ├── litellm.py           # LiteLLM routing wrapper (Phase 4)
-│   │   ├── qdrant.py            # Qdrant vector store client (Phase 3)
-│   │   ├── postgres.py          # asyncpg wrapper (Phase 6)
-│   │   ├── redis.py             # Redis async client (Phase 6)
+│   ├── integrations/            # Phases 2–6 complete; 7–9 not started
+│   │   ├── anthropic.py         # Async Anthropic SDK wrapper (Phase 2 — COMPLETE)
+│   │   ├── litellm.py           # LiteLLM routing wrapper (Phase 4 — COMPLETE)
+│   │   ├── qdrant.py            # QdrantIntegration + QdrantEvaluator (Phase 3 — COMPLETE)
+│   │   ├── postgres.py          # PostgresIntegration + PostgresValidator (Phase 6 — COMPLETE)
+│   │   ├── redis.py             # RedisIntegration + RedisValidator (Phase 6 — COMPLETE)
 │   │   ├── neo4j.py             # Neo4j driver wrapper (Phase 7)
 │   │   ├── nango.py             # Nango connector client (Phase 8)
 │   │   ├── docker.py            # Docker SDK wrapper (Phase 9)
 │   │   └── gcp.py               # GCP Cloud Run client (Phase 9)
-│   ├── evaluators/              # Phase 2–5 — NOT YET IMPLEMENTED
-│   │   ├── llm.py               # LLMEvaluator: relevance, faithfulness, hallucination
-│   │   ├── rag.py               # RAGEvaluator: recall, precision, groundedness
-│   │   ├── routing.py           # RoutingValidator: consistency across models
-│   │   └── streaming.py         # StreamingValidator: TTFT, throughput
-│   ├── validators/              # Phase 5–8 — NOT YET IMPLEMENTED
-│   │   ├── governance.py        # GovernanceValidator: audit trail completeness
-│   │   └── data_layer.py        # DataLayerValidator: schema, integrity
+│   ├── evaluators/              # Phases 2–5 complete
+│   │   ├── llm.py               # LLMEvaluator: relevance, faithfulness, hallucination (COMPLETE)
+│   │   ├── rag.py               # RAGEvaluator: recall, precision, generation (COMPLETE)
+│   │   ├── routing.py           # RoutingValidator: correctness, fallback, consistency (COMPLETE)
+│   │   └── streaming.py         # StreamingValidator: TTFT, throughput (COMPLETE)
+│   ├── validators/              # Phases 5–6 complete; 7–8 not started
+│   │   ├── governance.py        # GovernanceValidator: audit trail completeness (COMPLETE)
+│   │   └── data_layer.py        # DataLayerValidator: cache vs source consistency (COMPLETE)
 │   └── cli.py                   # Phase 10 — NOT YET IMPLEMENTED
 ├── tests/
-│   ├── unit/                    # Phase 1 — 91 tests, all mocked, all passing
+│   ├── unit/                    # Phases 1–6 — mocked, run on every commit
 │   ├── integration/             # Future — requires live services
 │   └── regression/              # Future — canonical suite, runs on schedule
 ├── audit_logs/                  # Created at runtime — not committed to git
@@ -378,10 +378,11 @@ ABC  (Python abstract base class)
     │              _elapsed_ms, _error_result, _write_audit
     │  Requires subclass to implement: name (property), evaluate()
     │
-    ├── LLMEvaluator       (Phase 2 — evaluators/llm.py)      NOT YET BUILT
-    ├── RAGEvaluator        (Phase 3 — evaluators/rag.py)      NOT YET BUILT
-    ├── RoutingValidator    (Phase 4 — evaluators/routing.py)  NOT YET BUILT
-    ├── StreamingValidator  (Phase 5 — evaluators/streaming.py) NOT YET BUILT
+    ├── LLMEvaluator       (Phase 2 — evaluators/llm.py)      COMPLETE AND TESTED
+    ├── RAGEvaluator        (Phase 3 — evaluators/rag.py)      COMPLETE AND TESTED
+    ├── RoutingValidator    (Phase 4 — evaluators/routing.py)  COMPLETE AND TESTED
+    ├── StreamingValidator  (Phase 5 — evaluators/streaming.py) COMPLETE AND TESTED
+    ├── GovernanceValidator (Phase 5 — validators/governance.py) COMPLETE AND TESTED
     └── [YourCustomEvaluator]  (see Section 7 for a complete example)
 ```
 
@@ -1106,7 +1107,7 @@ The audit log entry for this run is written to `./audit_logs/audit_YYYY-MM-DD.js
 
 Phase 2 implements `src/agentproof/integrations/anthropic.py` and `src/agentproof/evaluators/llm.py`. These are the first files that make AgentProof a working AI evaluation framework — not just infrastructure.
 
-> **Status:** Phase 2 is not yet implemented. The design below describes the intended implementation.
+> **Status:** Phase 2 is complete and tested (157 unit tests). Live scoring still requires `ANTHROPIC_API_KEY` (or another judge key) because DeepEval metrics call a judge model.
 
 ### What Phase 2 Adds
 
@@ -1118,40 +1119,51 @@ Phase 2 implements `src/agentproof/integrations/anthropic.py` and `src/agentproo
 |---|---|---|---|
 | `evaluate_relevance(input, output)` | `AnswerRelevancyMetric` | 0.7 | Does the output answer the question? |
 | `evaluate_faithfulness(input, output, context)` | `FaithfulnessMetric` | 0.9 | Is the output grounded in provided documents? |
-| `evaluate_hallucination(input, output, context)` | `HallucinationMetric` | 0.1 | Does the output contain unsupported claims? |
+| `evaluate_hallucination(input, output, context)` | `HallucinationMetric` | 0.1 | Hallucination *rate* (lower is better). DeepEval 4.x returns alignment; AgentProof stores `1.0 - score`. |
 
-**The DeepEval pattern Phase 2 will use:**
+**The DeepEval pattern Phase 2 uses:**
 
 ```python
-# This is how Phase 2 will call deepeval — for reference only
-from deepeval.test_case import LLMTestCase
-from deepeval.metrics import AnswerRelevancyMetric
+from agentproof.core.audit import AuditLogger
+from agentproof.core.config import AgentProofConfig
+from agentproof.core.runner import TestRunner
+from agentproof.evaluators.llm import LLMEvaluator
 
-test_case = LLMTestCase(
+config = AgentProofConfig()
+runner = TestRunner(config)
+evaluator = LLMEvaluator(config, runner.audit_logger)
+
+runner.register(
+    evaluator,
     input="What is our refund policy?",
-    actual_output="Refunds are available within 30 days of purchase.",
-    retrieval_context=["Our policy allows refunds within 30 days of purchase date."],
+    output="Refunds are available within 30 days of purchase.",
+    metric="relevance",
+)
+runner.register(
+    evaluator,
+    input="What is our refund policy?",
+    output="Refunds are available within 30 days of purchase.",
+    context=["Our policy allows refunds within 30 days of purchase date."],
+    metric="faithfulness",
+)
+runner.register(
+    evaluator,
+    input="What is our refund policy?",
+    output="Refunds are available within 30 days of purchase.",
+    context=["Our policy allows refunds within 30 days of purchase date."],
+    metric="hallucination",
 )
 
-metric = AnswerRelevancyMetric(
-    threshold=config.default_relevance_threshold,
-    model=config.judge_model,
-)
-
-await metric.a_measure(test_case)
-# After this call: metric.score (float), metric.reason (str), metric.success (bool)
-
-result = ValidationResult(
-    passed=metric.success,
-    score=metric.score,
-    ...
-    details={"reason": metric.reason},
-)
+summary = await runner.run()
+# summary.results → three ValidationResult objects
+# summary.all_passed → CI exit signal
 ```
+
+`evaluate_all(...)` is the same three metrics without registering three times. If `output` is omitted and an `AnthropicIntegration` is passed into `LLMEvaluator`, the response is generated once and reused.
 
 ### Why Phase 2 Is the First Demonstrable Milestone
 
-Once Phase 2 is complete, you can demonstrate:
+Phase 2 is complete. You can demonstrate:
 
 1. Pass a user query, a model response, and source documents to `LLMEvaluator`
 2. Three DeepEval metrics run against the response using Claude as judge
@@ -1161,8 +1173,14 @@ Once Phase 2 is complete, you can demonstrate:
 
 This is the point at which AgentProof produces visible, auditable output from real AI evaluation — not just infrastructure scaffolding.
 
+Phase 5 is complete: `GovernanceValidator` checks checkpoint coverage, human-override record/apply, structural separation, and SHA-256 tamper evidence. `StreamingValidator` checks TTFT (< 2s), throughput (> 20 tok/s), stream completeness, graceful degradation, and mid-stream error handling.
+
+Phase 6 is complete: `PostgresValidator` checks schema integrity, agent-state persistence, transaction rollback, write latency, and silent writes. `RedisValidator` checks semantic cache correctness, TTL, invalidation, and session state. `DataLayerValidator` compares Redis cache values to the PostgreSQL source of truth.
+
+Next: Phase 7 — Neo4j / Memgraph graph validation.
+
 ---
 
 *AgentProof — Enterprise-grade AI Agent Testing and Evaluation Framework*
 *Ana Bruno — ThinkAstra Consulting, San Diego CA*
-*Phase 1 complete and tested. Phase 2 in development.*
+*Phases 1–6 complete and tested. Phase 7 not started.*
