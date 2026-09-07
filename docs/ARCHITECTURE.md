@@ -31,24 +31,30 @@ agentproof/
 │       │   ├── config.py           # AgentProofConfig (Pydantic BaseSettings)
 │       │   ├── base.py             # BaseEvaluator, ValidationResult
 │       │   ├── runner.py           # TestRunner, TestRunSummary
-│       │   ├── audit.py            # AuditLogger (JSONL + SHA-256)
+│       │   ├── audit.py            # AuditLogger (JSONL + SHA-256 + PII redaction)
+│       │   ├── safety.py           # PII / prompt-injection detectors
+│       │   ├── observability.py    # Prometheus MetricsRegistry + TraceStore
 │       │   ├── retry.py            # RetryConfig, retry_async decorator
 │       │   └── errors.py           # EvaluatorError hierarchy
 │       │
 │       ├── evaluators/
 │       │   ├── __init__.py
-│       │   ├── llm.py              # LLMEvaluator (DeepEval integration)
+│       │   ├── llm.py              # LLMEvaluator (DeepEval: relevance, faithfulness, hallucination, toxicity)
 │       │   ├── rag.py              # RAGEvaluator (retrieval + generation)
 │       │   ├── routing.py          # RoutingValidator (LiteLLM)
 │       │   ├── streaming.py        # StreamingValidator (TTFT, throughput)
-│       │   └── regression.py       # RegressionSuite, RegressionTestCase
+│       │   ├── harness.py          # EvalHarness + EvalCase suite runner
+│       │   ├── workflow.py         # WorkflowEvaluator (recorded agentic traces)
+│       │   └── regression.py       # RegressionSuite, RegressionTestCase (not started)
 │       │
 │       ├── validators/
 │       │   ├── __init__.py
 │       │   ├── governance.py       # GovernanceValidator (audit trail, override)
-│       │   ├── graph.py            # GraphValidator (entity resolution, relationships)
-│       │   ├── ingestion.py        # IngestionValidator (connectors, pipelines)
-│       │   └── trust.py            # TrustValidator (executive output clarity)
+│       │   ├── data_layer.py       # DataLayerValidator (Postgres + Redis coordinator)
+│       │   ├── guardrails.py       # PII, injection, policy, tool allowlist
+│       │   ├── graph.py            # GraphValidator (entity resolution, relationships) — not started
+│       │   ├── ingestion.py        # IngestionValidator (connectors, pipelines) — not started
+│       │   └── trust.py            # TrustValidator (executive output clarity) — not started
 │       │
 │       ├── integrations/
 │       │   ├── __init__.py
@@ -82,7 +88,13 @@ agentproof/
 │   │   ├── test_routing_validator.py
 │   │   ├── test_streaming_validator.py
 │   │   ├── test_governance_validator.py
-│   │   └── test_qdrant_evaluator.py
+│   │   ├── test_qdrant_evaluator.py
+│   │   ├── test_postgres_validator.py
+│   │   ├── test_redis_validator.py
+│   │   ├── test_safety.py
+│   │   ├── test_guardrail_validator.py
+│   │   ├── test_workflow_evaluator.py
+│   │   └── test_observability.py
 │   │
 │   ├── integration/
 │   │   ├── test_litellm_routing.py         # Requires LiteLLM + API keys
@@ -133,7 +145,7 @@ CLI (cli.py)
             ├── AuditLogger (core/audit.py) ◄─── all evaluators write here
             │
             ├── LLMEvaluator (evaluators/llm.py)
-            │       └── DeepEval metrics
+            │       └── DeepEval metrics (incl. toxicity)
             │       └── Anthropic SDK / OpenAI SDK
             │
             ├── RAGEvaluator (evaluators/rag.py)
@@ -146,26 +158,40 @@ CLI (cli.py)
             ├── StreamingValidator (evaluators/streaming.py)
             │       └── httpx async client
             │
+            ├── EvalHarness (evaluators/harness.py)
+            │       └── TestRunner + optional GuardrailValidator
+            │       └── MetricsRegistry + TraceStore
+            │
+            ├── WorkflowEvaluator (evaluators/workflow.py)
+            │       └── recorded traces (subagents, skills, MCP, background, PR review)
+            │
             ├── GovernanceValidator (validators/governance.py)
             │       └── AuditLogger (reads audit logs)
             │
-            ├── GraphValidator (validators/graph.py)
-            │       └── Neo4jValidator (integrations/neo4j.py)
-            │       └── QdrantEvaluator (integrations/qdrant.py)
+            ├── GuardrailValidator (validators/guardrails.py)
+            │       └── core/safety.py (PII + injection detectors)
             │
             ├── DataLayerValidator (validators/data_layer.py)
             │       └── PostgresValidator (integrations/postgres.py)
             │       └── RedisValidator (integrations/redis.py)
             │
-            ├── ConnectorValidator (validators/ingestion.py)
+            ├── GraphValidator (validators/graph.py)              # not started
+            │       └── Neo4jValidator (integrations/neo4j.py)
+            │       └── QdrantEvaluator (integrations/qdrant.py)
+            │
+            ├── ConnectorValidator (validators/ingestion.py)      # not started
             │       └── NangoValidator (integrations/nango.py)
             │
-            ├── InfrastructureValidator (validators/infrastructure.py)
+            ├── InfrastructureValidator (validators/infrastructure.py)  # not started
             │       └── DockerValidator (integrations/docker.py)
             │       └── GCPValidator (integrations/gcp.py)
             │
-            └── TrustValidator (validators/trust.py)
+            └── TrustValidator (validators/trust.py)              # not started
                     └── LLMEvaluator (reuses LLM judge)
+
+            Observability (every run):
+            ├── AuditLogger (core/audit.py) — JSONL + SHA-256 + PII redaction
+            └── MetricsRegistry / TraceStore (core/observability.py) — Prometheus text + spans
 ```
 
 ---

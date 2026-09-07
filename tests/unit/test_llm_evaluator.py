@@ -463,8 +463,36 @@ async def test_evaluate_dispatches_hallucination(evaluator):
     assert abs(result.score - 0.05) < 1e-9
 
 
+async def test_toxicity_pass(evaluator):
+    cls, _ = _stub_metric(0.02)
+    with patch("agentproof.evaluators.llm.ToxicityMetric", cls):
+        result = await evaluator.evaluate_toxicity(input=QUERY, output=OUTPUT)
+    assert result.passed is True
+    assert result.score == 0.02
+    assert result.metric == "toxicity"
+    assert result.threshold == 0.1
+    assert result.details["score_interpretation"] == "lower is better"
+
+
+async def test_toxicity_fail_above_threshold(evaluator):
+    cls, _ = _stub_metric(0.4)
+    with patch("agentproof.evaluators.llm.ToxicityMetric", cls):
+        result = await evaluator.evaluate_toxicity(input=QUERY, output=OUTPUT)
+    assert result.passed is False
+    assert result.score == 0.4
+    assert result.error is None
+
+
+async def test_evaluate_dispatches_toxicity(evaluator):
+    cls, _ = _stub_metric(0.0)
+    with patch("agentproof.evaluators.llm.ToxicityMetric", cls):
+        result = await evaluator.evaluate(input=QUERY, output=OUTPUT, metric="toxicity")
+    assert result.metric == "toxicity"
+    assert result.passed is True
+
+
 async def test_evaluate_unknown_metric_is_error_result(evaluator, mock_audit):
-    result = await evaluator.evaluate(input=QUERY, output=OUTPUT, metric="toxicity")
+    result = await evaluator.evaluate(input=QUERY, output=OUTPUT, metric="bleu")
     assert result.passed is False
     assert result.error is not None
     assert "Unknown metric" in result.error
@@ -496,22 +524,29 @@ async def test_evaluate_generates_output_via_anthropic(config, mock_audit):
 # ── evaluate_all ──────────────────────────────────────────────────────────────
 
 
-async def test_evaluate_all_returns_three_results(evaluator):
+async def test_evaluate_all_returns_four_results(evaluator):
     rel, _ = _stub_metric(0.85)
     faith, _ = _stub_metric(0.94)
     hall, _ = _stub_metric(0.96)
+    tox, _ = _stub_metric(0.02)
 
     with (
         patch("agentproof.evaluators.llm.AnswerRelevancyMetric", rel),
         patch("agentproof.evaluators.llm.FaithfulnessMetric", faith),
         patch("agentproof.evaluators.llm.HallucinationMetric", hall),
+        patch("agentproof.evaluators.llm.ToxicityMetric", tox),
     ):
         results = await evaluator.evaluate_all(
             input=QUERY, output=OUTPUT, context=CONTEXT
         )
 
-    assert len(results) == 3
-    assert [r.metric for r in results] == ["relevance", "faithfulness", "hallucination"]
+    assert len(results) == 4
+    assert [r.metric for r in results] == [
+        "relevance",
+        "faithfulness",
+        "hallucination",
+        "toxicity",
+    ]
     assert all(isinstance(r, ValidationResult) for r in results)
 
 
@@ -523,11 +558,13 @@ async def test_evaluate_all_generates_output_once(config, mock_audit):
     rel, _ = _stub_metric(0.9)
     faith, _ = _stub_metric(0.95)
     hall, _ = _stub_metric(0.99)
+    tox, _ = _stub_metric(0.01)
 
     with (
         patch("agentproof.evaluators.llm.AnswerRelevancyMetric", rel),
         patch("agentproof.evaluators.llm.FaithfulnessMetric", faith),
         patch("agentproof.evaluators.llm.HallucinationMetric", hall),
+        patch("agentproof.evaluators.llm.ToxicityMetric", tox),
     ):
         await evaluator.evaluate_all(input=QUERY, context=CONTEXT)
 
@@ -539,11 +576,13 @@ async def test_evaluate_all_continues_after_one_metric_errors(evaluator, mock_au
     rel_inst.a_measure = AsyncMock(side_effect=RuntimeError("boom"))
     faith, _ = _stub_metric(0.95)
     hall, _ = _stub_metric(0.99)
+    tox, _ = _stub_metric(0.01)
 
     with (
         patch("agentproof.evaluators.llm.AnswerRelevancyMetric", rel),
         patch("agentproof.evaluators.llm.FaithfulnessMetric", faith),
         patch("agentproof.evaluators.llm.HallucinationMetric", hall),
+        patch("agentproof.evaluators.llm.ToxicityMetric", tox),
         patch("agentproof.core.retry.asyncio.sleep", new_callable=AsyncMock),
     ):
         results = await evaluator.evaluate_all(
@@ -553,7 +592,8 @@ async def test_evaluate_all_continues_after_one_metric_errors(evaluator, mock_au
     assert results[0].error is not None
     assert results[1].error is None
     assert results[2].error is None
-    assert mock_audit.log.await_count == 3
+    assert results[3].error is None
+    assert mock_audit.log.await_count == 4
 
 
 # ── Result shape ──────────────────────────────────────────────────────────────

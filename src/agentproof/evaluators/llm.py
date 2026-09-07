@@ -1,6 +1,7 @@
 """LLMEvaluator — DeepEval-backed scoring of LLM outputs.
 
-Wraps AnswerRelevancyMetric, FaithfulnessMetric, and HallucinationMetric with
+Wraps AnswerRelevancyMetric, FaithfulnessMetric, HallucinationMetric, and
+ToxicityMetric with
 AgentProof's config, retry, audit, and ValidationResult contracts.
 
 Usage:
@@ -21,7 +22,12 @@ Usage:
 from datetime import datetime, timezone
 from typing import Any, Callable
 
-from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric, HallucinationMetric
+from deepeval.metrics import (
+    AnswerRelevancyMetric,
+    FaithfulnessMetric,
+    HallucinationMetric,
+    ToxicityMetric,
+)
 from deepeval.models import AnthropicModel
 from deepeval.test_case import LLMTestCase
 
@@ -38,14 +44,15 @@ SUPPORTED_METRICS = (
     "answer_relevance",
     "faithfulness",
     "hallucination",
+    "toxicity",
 )
 
 
 class LLMEvaluator(BaseEvaluator):
     """Scores LLM outputs with DeepEval metrics and writes an audit entry.
 
-    Three public metric methods plus `evaluate()` (the BaseEvaluator contract)
-    and `evaluate_all()` (runs the three Phase 2 metrics in order).
+    Four public metric methods plus `evaluate()` (the BaseEvaluator contract)
+    and `evaluate_all()` (runs relevance, faithfulness, hallucination, toxicity).
 
     Evaluation failures never raise — they return a ValidationResult with
     `error` set. AuditError is the only exception that propagates.
@@ -96,8 +103,8 @@ class LLMEvaluator(BaseEvaluator):
                 (faithfulness fallback).
             retrieval_context: Retrieved documents for faithfulness. Preferred
                 over `context` when both are supplied.
-            metric: One of "relevance" (default), "faithfulness", "hallucination".
-                "answer_relevancy" and "answer_relevance" are aliases of relevance.
+            metric: One of "relevance" (default), "faithfulness", "hallucination",
+                "toxicity". "answer_relevancy" and "answer_relevance" alias relevance.
             executive: When True, faithfulness uses the executive threshold (0.95).
 
         Returns:
@@ -132,6 +139,8 @@ class LLMEvaluator(BaseEvaluator):
                 output=resolved_output,
                 context=context,
             )
+        if key == "toxicity":
+            return await self.evaluate_toxicity(input=input, output=resolved_output)
 
         audit_id = self._new_audit_id()
         start = self._start_timer()
@@ -281,6 +290,39 @@ class LLMEvaluator(BaseEvaluator):
             invert_score=True,
         )
 
+    async def evaluate_toxicity(
+        self,
+        *,
+        input: str,
+        output: str,
+        **kwargs: Any,
+    ) -> ValidationResult:
+        """Score toxic content in `output` (DeepEval ToxicityMetric).
+
+        DeepEval's toxicity score is already a rate (lower is better).
+        `passed` when score <= `config.toxicity_threshold` (default 0.1).
+
+        Args:
+            input: User query (required by DeepEval's test case).
+            output: Model response under inspection.
+
+        Returns:
+            ValidationResult. `score` is the toxicity rate.
+        """
+
+        def build_case() -> LLMTestCase:
+            self._require_text(input, "input", "toxicity")
+            self._require_text(output, "output", "toxicity")
+            return LLMTestCase(input=input, actual_output=output)
+
+        return await self._measure(
+            metric_name="toxicity",
+            threshold=self.config.toxicity_threshold,
+            factory=ToxicityMetric,
+            test_case_factory=build_case,
+            lower_is_better=True,
+        )
+
     async def evaluate_all(
         self,
         *,
@@ -290,7 +332,7 @@ class LLMEvaluator(BaseEvaluator):
         retrieval_context: list[str] | None = None,
         executive: bool = False,
     ) -> list[ValidationResult]:
-        """Run relevance, faithfulness, and hallucination in that order.
+        """Run relevance, faithfulness, hallucination, and toxicity in that order.
 
         Generates `output` once (if omitted) and reuses it for all three metrics.
 
@@ -302,7 +344,7 @@ class LLMEvaluator(BaseEvaluator):
             executive: Forwarded to evaluate_faithfulness.
 
         Returns:
-            Three ValidationResult objects, one per metric. Individual metric
+            Four ValidationResult objects, one per metric. Individual metric
             failures are captured as error results; they do not abort the rest.
         """
         try:
@@ -330,6 +372,7 @@ class LLMEvaluator(BaseEvaluator):
                 output=resolved_output,
                 context=context,
             ),
+            await self.evaluate_toxicity(input=input, output=resolved_output),
         ]
 
     async def _resolve_output(self, prompt: str, output: str | None) -> str:
@@ -365,6 +408,7 @@ class LLMEvaluator(BaseEvaluator):
         factory: Callable[..., Any],
         test_case_factory: Callable[[], LLMTestCase],
         invert_score: bool = False,
+        lower_is_better: bool = False,
     ) -> ValidationResult:
         """Construct a DeepEval metric, measure asynchronously, and audit.
 
@@ -375,6 +419,7 @@ class LLMEvaluator(BaseEvaluator):
             test_case_factory: Builds the LLMTestCase; may raise LLMEvaluatorError.
             invert_score: If True, treat DeepEval's score as higher-is-better
                 alignment and convert to a lower-is-better rate.
+            lower_is_better: If True, pass when score <= threshold (toxicity).
 
         Returns:
             ValidationResult. Evaluation exceptions become error results.
@@ -407,9 +452,15 @@ class LLMEvaluator(BaseEvaluator):
             if invert_score:
                 score = _clamp(1.0 - raw_f)
                 passed = score <= threshold
+                interpretation = "hallucination_rate (lower is better)"
+            elif lower_is_better:
+                score = raw_f
+                passed = score <= threshold
+                interpretation = "lower is better"
             else:
                 score = raw_f
                 passed = score >= threshold
+                interpretation = "higher is better"
 
             result = ValidationResult(
                 passed=passed,
@@ -421,11 +472,7 @@ class LLMEvaluator(BaseEvaluator):
                     "reason": getattr(metric, "reason", None) or "",
                     "deepeval_score": raw_f,
                     "deepeval_success": bool(getattr(metric, "success", passed)),
-                    "score_interpretation": (
-                        "hallucination_rate (lower is better)"
-                        if invert_score
-                        else "higher is better"
-                    ),
+                    "score_interpretation": interpretation,
                 },
                 latency_ms=self._elapsed_ms(start),
                 timestamp=datetime.now(timezone.utc),

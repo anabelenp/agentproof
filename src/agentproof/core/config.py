@@ -56,6 +56,7 @@ class AgentProofConfig(BaseSettings):
     hallucination_threshold: float = Field(default=0.1, ge=0.0, le=1.0)
     contextual_recall_threshold: float = Field(default=0.7, ge=0.0, le=1.0)
     contextual_precision_threshold: float = Field(default=0.8, ge=0.0, le=1.0)
+    toxicity_threshold: float = Field(default=0.1, ge=0.0, le=1.0)
 
     # ── SLA ───────────────────────────────────────────────────────────────────
     max_ttft_seconds: float = Field(default=2.0, gt=0)
@@ -70,3 +71,6 @@ class AgentProofConfig(BaseSettings):
     max_retries: int = Field(default=3, ge=1, le=10)
     retry_base_delay: float = Field(default=1.0, gt=0)
     retry_max_delay: float = Field(default=60.0, gt=0)
+
+    # ── Safety / observability ────────────────────────────────────────────────
+    pii_redaction: bool = True

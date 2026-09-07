@@ -267,7 +267,9 @@ agentproof/
 │   │   ├── config.py            # AgentProofConfig: Pydantic BaseSettings
 │   │   ├── errors.py            # Exception hierarchy
 │   │   ├── retry.py             # retry_async decorator + RetryConfig
-│   │   ├── audit.py             # AuditLogger: JSONL + SHA-256 tamper evidence
+│   │   ├── audit.py             # AuditLogger: JSONL + SHA-256 + PII redaction
+│   │   ├── safety.py            # PII / prompt-injection detectors (COMPLETE)
+│   │   ├── observability.py     # Prometheus MetricsRegistry + TraceStore (COMPLETE)
 │   │   ├── base.py              # BaseEvaluator (abstract) + ValidationResult
 │   │   └── runner.py            # TestRunner + TestRunSummary
 │   ├── integrations/            # Phases 2–6 complete; 7–9 not started
@@ -280,17 +282,20 @@ agentproof/
 │   │   ├── nango.py             # Nango connector client (Phase 8)
 │   │   ├── docker.py            # Docker SDK wrapper (Phase 9)
 │   │   └── gcp.py               # GCP Cloud Run client (Phase 9)
-│   ├── evaluators/              # Phases 2–5 complete
-│   │   ├── llm.py               # LLMEvaluator: relevance, faithfulness, hallucination (COMPLETE)
+│   ├── evaluators/              # Phases 2–5 complete + harness/workflow
+│   │   ├── llm.py               # LLMEvaluator: relevance, faithfulness, hallucination, toxicity (COMPLETE)
 │   │   ├── rag.py               # RAGEvaluator: recall, precision, generation (COMPLETE)
 │   │   ├── routing.py           # RoutingValidator: correctness, fallback, consistency (COMPLETE)
-│   │   └── streaming.py         # StreamingValidator: TTFT, throughput (COMPLETE)
-│   ├── validators/              # Phases 5–6 complete; 7–8 not started
+│   │   ├── streaming.py         # StreamingValidator: TTFT, throughput (COMPLETE)
+│   │   ├── harness.py           # EvalHarness + EvalCase suite runner (COMPLETE)
+│   │   └── workflow.py          # WorkflowEvaluator: recorded agentic traces (COMPLETE)
+│   ├── validators/              # Phases 5–6 complete + guardrails; 7–8 not started
 │   │   ├── governance.py        # GovernanceValidator: audit trail completeness (COMPLETE)
-│   │   └── data_layer.py        # DataLayerValidator: cache vs source consistency (COMPLETE)
+│   │   ├── data_layer.py        # DataLayerValidator: cache vs source consistency (COMPLETE)
+│   │   └── guardrails.py        # PII, injection, policy, tool allowlist (COMPLETE)
 │   └── cli.py                   # Phase 10 — NOT YET IMPLEMENTED
 ├── tests/
-│   ├── unit/                    # Phases 1–6 — mocked, run on every commit
+│   ├── unit/                    # Phases 1–6 + evals/guardrails/observability — mocked, run on every commit
 │   ├── integration/             # Future — requires live services
 │   └── regression/              # Future — canonical suite, runs on schedule
 ├── audit_logs/                  # Created at runtime — not committed to git
@@ -302,10 +307,10 @@ agentproof/
 
 **Why each layer exists:**
 
-- `core/` is the plumbing. It knows nothing about LLMs or databases — only about results, audit logging, retry behavior, and error types. This isolation is deliberate: if DeepEval is swapped for a different evaluation library, the core layer does not change.
+- `core/` is the plumbing. It knows nothing about LLMs or databases — only about results, audit logging, retry behavior, error types, PII redaction, and Prometheus traces. This isolation is deliberate: if DeepEval is swapped for a different evaluation library, the core layer does not change.
 - `integrations/` wraps external SDKs. It translates between AgentProof's internal types and the external API's types. Keeping SDK calls here means evaluators stay readable and mockable.
-- `evaluators/` implements specific behavioral contracts using the integration layer. An `LLMEvaluator` uses `AnthropicIntegration` to call the model and DeepEval to score the result.
-- `validators/` is for infrastructure-level checks (governance, data layer) that do not fit the "score a model output" pattern of evaluators.
+- `evaluators/` implements specific behavioral contracts using the integration layer. An `LLMEvaluator` uses `AnthropicIntegration` to call the model and DeepEval to score the result. `WorkflowEvaluator` scores a *recorded* agentic trace — it does not host subagents, skills, or MCP servers.
+- `validators/` is for infrastructure-level checks (governance, data layer, guardrails) that do not fit the "score a model output" pattern of evaluators.
 - `tests/unit/` mocks every external dependency — no API keys or running services required. This is the suite that runs on every commit.
 
 ### Data Flow: Test Trigger to Audit Log Entry
@@ -1120,6 +1125,7 @@ Phase 2 implements `src/agentproof/integrations/anthropic.py` and `src/agentproo
 | `evaluate_relevance(input, output)` | `AnswerRelevancyMetric` | 0.7 | Does the output answer the question? |
 | `evaluate_faithfulness(input, output, context)` | `FaithfulnessMetric` | 0.9 | Is the output grounded in provided documents? |
 | `evaluate_hallucination(input, output, context)` | `HallucinationMetric` | 0.1 | Hallucination *rate* (lower is better). DeepEval 4.x returns alignment; AgentProof stores `1.0 - score`. |
+| `evaluate_toxicity(input, output)` | `ToxicityMetric` | 0.1 | Toxicity *rate* (lower is better). DeepEval already returns a rate; AgentProof does not invert it. |
 
 **The DeepEval pattern Phase 2 uses:**
 
@@ -1155,21 +1161,21 @@ runner.register(
 )
 
 summary = await runner.run()
-# summary.results → three ValidationResult objects
+# summary.results → ValidationResult objects
 # summary.all_passed → CI exit signal
 ```
 
-`evaluate_all(...)` is the same three metrics without registering three times. If `output` is omitted and an `AnthropicIntegration` is passed into `LLMEvaluator`, the response is generated once and reused.
+`evaluate_all(...)` runs the four metrics (relevance, faithfulness, hallucination, toxicity) without registering four times. If `output` is omitted and an `AnthropicIntegration` is passed into `LLMEvaluator`, the response is generated once and reused.
 
 ### Why Phase 2 Is the First Demonstrable Milestone
 
 Phase 2 is complete. You can demonstrate:
 
 1. Pass a user query, a model response, and source documents to `LLMEvaluator`
-2. Three DeepEval metrics run against the response using Claude as judge
-3. Three scored `ValidationResult` objects come back, each with a `passed` flag
-4. Three tamper-evident `AuditEntry` records are written to the daily JSONL log
-5. A `TestRunSummary` is returned with a pass rate and an `all_passed` flag for CI integration
+2. Four DeepEval metrics run against the response using Claude as judge
+3. Four scored `ValidationResult` objects come back, each with a `passed` flag
+4. Four tamper-evident `AuditEntry` records are written to the daily JSONL log (PII redacted)
+5. A `TestRunSummary` is returned with a pass rate and an `all_passed` flag for CI integration. Prometheus counters and an `EvalTrace` are recorded on the runner.
 
 This is the point at which AgentProof produces visible, auditable output from real AI evaluation — not just infrastructure scaffolding.
 
@@ -1177,10 +1183,12 @@ Phase 5 is complete: `GovernanceValidator` checks checkpoint coverage, human-ove
 
 Phase 6 is complete: `PostgresValidator` checks schema integrity, agent-state persistence, transaction rollback, write latency, and silent writes. `RedisValidator` checks semantic cache correctness, TTL, invalidation, and session state. `DataLayerValidator` compares Redis cache values to the PostgreSQL source of truth.
 
+Evals, guardrails, and observability (complete, tested): `EvalHarness` runs suites of `EvalCase`s. `GuardrailValidator` blocks PII, prompt injection, policy phrases, and off-allowlist tools. `WorkflowEvaluator` scores a *recorded* agentic trace (subagents, skills, MCP tools, background jobs, PR-review gates) — AgentProof does not host those runtimes. `MetricsRegistry` exports Prometheus text; `TraceStore` keeps in-memory spans. Audit JSONL redacts PII before hashing.
+
 Next: Phase 7 — Neo4j / Memgraph graph validation.
 
 ---
 
 *AgentProof — Enterprise-grade AI Agent Testing and Evaluation Framework*
 *Ana Bruno — ThinkAstra Consulting, San Diego CA*
-*Phases 1–6 complete and tested. Phase 7 not started.*
+*Phases 1–6 complete and tested, plus evals/guardrails/observability. Phase 7 not started.*

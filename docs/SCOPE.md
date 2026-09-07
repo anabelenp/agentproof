@@ -31,7 +31,7 @@ The result: companies ship AI systems they cannot test, cannot audit, and cannot
 ## What AgentProof Is NOT
 
 - Not a general-purpose test automation framework (use Playwright, Pytest for that)
-- Not a monitoring or observability tool (use Langfuse, Prometheus for that)
+- Not a production monitoring or APM product (use Langfuse for LLM tracing). AgentProof does export Prometheus metrics and in-memory eval traces for test runs via `prometheus-client`.
 - Not an LLM provider or agent builder
 - Not a replacement for unit and integration testing — it sits on top of those layers
 - Not LangChain-dependent — zero LangChain or LangGraph imports, ever

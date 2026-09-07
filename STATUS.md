@@ -4,11 +4,16 @@
 - `src/agentproof/core/config.py` — `AgentProofConfig` with Pydantic validation, tested
 - `src/agentproof/core/errors.py` — full exception hierarchy, tested
 - `src/agentproof/core/retry.py` — `RetryConfig`, `retry_async` with exponential backoff + jitter, tested
-- `src/agentproof/core/audit.py` — `AuditLogger` (JSONL + SHA-256 + integrity verify + read_entries), tested
+- `src/agentproof/core/audit.py` — `AuditLogger` (JSONL + SHA-256 + integrity verify + read_entries + PII redaction), tested
 - `src/agentproof/core/base.py` — `ValidationResult`, `BaseEvaluator` with helper methods, tested
 - `src/agentproof/core/runner.py` — `TestRunner` (parallel/sequential), `TestRunSummary`, tested
 - `src/agentproof/integrations/anthropic.py` — `AnthropicIntegration` async SDK wrapper, tested
-- `src/agentproof/evaluators/llm.py` — `LLMEvaluator` (relevance, faithfulness, hallucination), tested
+- `src/agentproof/evaluators/llm.py` — `LLMEvaluator` (relevance, faithfulness, hallucination, toxicity), tested
+- `src/agentproof/evaluators/harness.py` — `EvalHarness` + `EvalCase` suite runner, tested
+- `src/agentproof/evaluators/workflow.py` — `WorkflowEvaluator` (subagents, skills, MCP allowlist, background, PR review), tested
+- `src/agentproof/validators/guardrails.py` — `GuardrailValidator` (PII, injection, policy, tool allowlist), tested
+- `src/agentproof/core/observability.py` — Prometheus `MetricsRegistry` + `TraceStore`, tested
+- `src/agentproof/core/safety.py` — PII / injection detectors used by guardrails and audit redaction, tested
 - `src/agentproof/integrations/qdrant.py` — `QdrantIntegration` + `QdrantEvaluator` (precision@k, recall@k, integrity, latency), tested
 - `src/agentproof/evaluators/rag.py` — `RAGEvaluator` (contextual recall/precision + generation via LLMEvaluator), tested
 - `src/agentproof/integrations/litellm.py` — `LiteLLMIntegration` async wrapper, tested
@@ -18,7 +23,7 @@
 - `src/agentproof/integrations/postgres.py` — `PostgresIntegration` + `PostgresValidator` (schema, state, transactions, silent writes, write latency), tested
 - `src/agentproof/integrations/redis.py` — `RedisIntegration` + `RedisValidator` (cache correctness, TTL, invalidation, session state), tested
 - `src/agentproof/validators/data_layer.py` — `DataLayerValidator` (dispatch + cache vs PostgreSQL source consistency), tested
-- `tests/unit/` — 436 unit tests, all mocked, all passing
+- `tests/unit/` — 479 unit tests, all mocked, all passing
 
 ### Partially implemented:
 - None

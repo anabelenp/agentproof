@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any
 
 from .errors import AuditError
+from .safety import redact_value
 
 
 @dataclass
@@ -74,14 +75,17 @@ class AuditLogger:
         assert await audit.verify_integrity(entry.audit_id)
     """
 
-    def __init__(self, log_dir: Path) -> None:
+    def __init__(self, log_dir: Path, *, redact_pii: bool = True) -> None:
         """
         Args:
             log_dir: Directory where audit_YYYY-MM-DD.jsonl files are written.
                      Created on first log() call if it does not exist.
+            redact_pii: If True (default), redact emails/SSNs/cards/keys in
+                `details` and `error` before hashing and writing (NFR-06).
         """
         self._log_dir = Path(log_dir)
         self._lock = asyncio.Lock()
+        self._redact_pii = redact_pii
 
     def _today_log_path(self) -> Path:
         """Return today's log file path (UTC date)."""
@@ -116,6 +120,11 @@ class AuditLogger:
             AuditError: On any I/O or serialization failure. Always propagates.
         """
         try:
+            if self._redact_pii:
+                entry.details = redact_value(entry.details)  # type: ignore[assignment]
+                if isinstance(entry.error, str):
+                    redacted_error = redact_value(entry.error)
+                    entry.error = redacted_error if isinstance(redacted_error, str) else entry.error
             entry.timestamp = datetime.now(timezone.utc).isoformat()
             entry_data = asdict(entry)
             entry_data["entry_hash"] = self._compute_hash(entry_data)

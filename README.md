@@ -41,20 +41,25 @@ poetry run pytest tests/unit/ -v
 agentproof/
 ├── src/agentproof/
 │   ├── core/
-│   │   ├── config.py      # AgentProofConfig (Pydantic BaseSettings)
-│   │   ├── errors.py      # Exception hierarchy
-│   │   ├── retry.py       # retry_async decorator, exponential backoff
-│   │   ├── audit.py       # AuditLogger — JSONL + SHA-256 tamper evidence
-│   │   ├── base.py        # BaseEvaluator, ValidationResult
-│   │   └── runner.py      # TestRunner, TestRunSummary
+│   │   ├── config.py         # AgentProofConfig (Pydantic BaseSettings)
+│   │   ├── errors.py         # Exception hierarchy
+│   │   ├── retry.py          # retry_async decorator, exponential backoff
+│   │   ├── audit.py          # AuditLogger — JSONL + SHA-256 + PII redaction
+│   │   ├── safety.py         # PII / prompt-injection detectors
+│   │   ├── observability.py  # Prometheus MetricsRegistry + TraceStore
+│   │   ├── base.py           # BaseEvaluator, ValidationResult
+│   │   └── runner.py         # TestRunner, TestRunSummary
 │   ├── evaluators/
-│   │   ├── llm.py         # LLMEvaluator (relevance, faithfulness, hallucination)
+│   │   ├── llm.py         # LLMEvaluator (relevance, faithfulness, hallucination, toxicity)
 │   │   ├── rag.py         # RAGEvaluator (contextual recall/precision + generation)
 │   │   ├── routing.py     # RoutingValidator (correctness, fallback, consistency)
-│   │   └── streaming.py   # StreamingValidator (TTFT, throughput, completeness)
+│   │   ├── streaming.py   # StreamingValidator (TTFT, throughput, completeness)
+│   │   ├── harness.py     # EvalHarness suite runner
+│   │   └── workflow.py    # WorkflowEvaluator (recorded agentic traces)
 │   ├── validators/
 │   │   ├── governance.py  # GovernanceValidator (trail, override, separation)
-│   │   └── data_layer.py  # DataLayerValidator (cache vs source consistency)
+│   │   ├── data_layer.py  # DataLayerValidator (cache vs source consistency)
+│   │   └── guardrails.py  # PII, injection, policy, tool allowlist
 │   └── integrations/
 │       ├── anthropic.py   # AnthropicIntegration (async SDK wrapper)
 │       ├── qdrant.py      # QdrantIntegration + QdrantEvaluator
@@ -72,7 +77,9 @@ agentproof/
 - **No LangChain, LangGraph, or LangSmith** — ever.
 - All evaluator methods are async.
 - Every evaluation produces a typed `ValidationResult` (never raw dicts).
-- Every result is logged as an immutable JSONL audit entry with SHA-256 hash.
+- Every result is logged as an immutable JSONL audit entry with SHA-256 hash (PII redacted).
+- Prometheus metrics and in-memory traces record pass/fail/latency for every evaluation.
+- AgentProof evaluates recorded agentic traces (subagents, skills, MCP tools, background jobs, PR-review gates). It does not host those runtimes.
 - `AuditError` always propagates — failed audit writes are compliance violations.
 
 ---

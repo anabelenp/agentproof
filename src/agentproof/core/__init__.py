@@ -10,13 +10,16 @@ from .errors import (
     DataLayerValidatorError,
     EvaluatorError,
     GovernanceValidatorError,
+    GuardrailValidatorError,
     IntegrationError,
     LLMEvaluatorError,
     RAGEvaluatorError,
     RetryExhaustedError,
     RoutingValidatorError,
     StreamingValidatorError,
+    WorkflowEvaluatorError,
 )
+from .observability import EvalTrace, MetricsRegistry, Span, TraceStore
 from .retry import RetryConfig, retry_async
 from .runner import TestRunner, TestRunSummary
 
@@ -31,16 +34,22 @@ __all__ = [
     "DataLayerValidatorError",
     "EvaluatorError",
     "GovernanceValidatorError",
+    "GuardrailValidatorError",
+    "EvalTrace",
     "IntegrationError",
     "LLMEvaluatorError",
+    "MetricsRegistry",
     "new_audit_id",
     "RAGEvaluatorError",
     "RetryConfig",
     "RetryExhaustedError",
     "retry_async",
     "RoutingValidatorError",
+    "Span",
     "StreamingValidatorError",
     "TestRunSummary",
     "TestRunner",
+    "TraceStore",
     "ValidationResult",
+    "WorkflowEvaluatorError",
 ]

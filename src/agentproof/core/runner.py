@@ -21,6 +21,7 @@ from typing import Any
 from .audit import AuditLogger
 from .base import BaseEvaluator, ValidationResult
 from .config import AgentProofConfig
+from .observability import EvalTrace, MetricsRegistry, TraceStore, span_from_result
 
 
 @dataclass
@@ -70,13 +71,27 @@ class TestRunner:
         summary = await runner.run(parallel=True)
     """
 
-    def __init__(self, config: AgentProofConfig) -> None:
+    def __init__(
+        self,
+        config: AgentProofConfig,
+        *,
+        audit_logger: AuditLogger | None = None,
+        metrics: MetricsRegistry | None = None,
+        traces: TraceStore | None = None,
+    ) -> None:
         """
         Args:
             config: AgentProofConfig. audit_log_dir is used for the shared AuditLogger.
+            audit_logger: Optional logger. Created from config when omitted.
+            metrics: Optional Prometheus registry. Created when omitted.
+            traces: Optional in-memory TraceStore. Created when omitted.
         """
         self.config = config
-        self.audit_logger = AuditLogger(config.audit_log_dir)
+        self.audit_logger = audit_logger or AuditLogger(
+            config.audit_log_dir, redact_pii=config.pii_redaction
+        )
+        self.metrics = metrics or MetricsRegistry()
+        self.traces = traces or TraceStore()
         self._evaluators: list[tuple[BaseEvaluator, dict[str, Any]]] = []
 
     def register(self, evaluator: BaseEvaluator, **kwargs: Any) -> None:
@@ -153,6 +168,17 @@ class TestRunner:
         passed = sum(1 for r in results if r.passed and r.error is None)
         failed = sum(1 for r in results if not r.passed and r.error is None)
         error_count = sum(1 for r in results if r.error is not None)
+
+        for result in results:
+            self.metrics.record_result(result)
+        self.traces.record(
+            EvalTrace(
+                trace_id=str(uuid.uuid4()),
+                run_id=run_id,
+                timestamp=timestamp,
+                spans=[span_from_result(result) for result in results],
+            )
+        )
 
         return TestRunSummary(
             run_id=run_id,

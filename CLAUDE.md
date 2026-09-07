@@ -101,6 +101,17 @@ Phase 6 — Data layer:
   tests/unit/test_postgres_validator.py
   tests/unit/test_redis_validator.py
 
+Alongside Phase 6 (complete, tested — not a skipped numbered phase):
+  src/agentproof/core/safety.py
+  src/agentproof/core/observability.py
+  src/agentproof/validators/guardrails.py
+  src/agentproof/evaluators/harness.py
+  src/agentproof/evaluators/workflow.py
+  tests/unit/test_safety.py
+  tests/unit/test_guardrail_validator.py
+  tests/unit/test_observability.py
+  tests/unit/test_workflow_evaluator.py
+
 Phase 7 — Graph validation:
   src/agentproof/integrations/neo4j.py
   src/agentproof/validators/graph.py
@@ -201,6 +212,7 @@ result = ValidationResult(
 - Hallucination rate: < 0.1
 - Contextual recall: > 0.7
 - Contextual precision: > 0.8
+- Toxicity rate: < 0.1
 
 ---
 

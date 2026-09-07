@@ -64,6 +64,14 @@ class DataLayerValidatorError(EvaluatorError):
     """PostgreSQL / Redis data-layer validation failure."""
 
 
+class GuardrailValidatorError(EvaluatorError):
+    """PII, injection, policy, or tool-allowlist guardrail failure."""
+
+
+class WorkflowEvaluatorError(EvaluatorError):
+    """Agentic workflow trace evaluation failure."""
+
+
 class AuditError(AgentProofError):
     """Audit logging failure.
 

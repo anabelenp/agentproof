@@ -15,6 +15,8 @@ def test_default_thresholds():
     assert config.hallucination_threshold == 0.1
     assert config.contextual_recall_threshold == 0.7
     assert config.contextual_precision_threshold == 0.8
+    assert config.toxicity_threshold == 0.1
+    assert config.pii_redaction is True
 
 
 def test_default_sla():

@@ -8,12 +8,14 @@ from agentproof.core.errors import (
     DataLayerValidatorError,
     EvaluatorError,
     GovernanceValidatorError,
+    GuardrailValidatorError,
     IntegrationError,
     LLMEvaluatorError,
     RAGEvaluatorError,
     RetryExhaustedError,
     RoutingValidatorError,
     StreamingValidatorError,
+    WorkflowEvaluatorError,
 )
 
 # ── Hierarchy ─────────────────────────────────────────────────────────────────
@@ -38,6 +40,8 @@ def test_evaluator_subclasses_inherit_from_evaluator_error():
         StreamingValidatorError,
         GovernanceValidatorError,
         DataLayerValidatorError,
+        GuardrailValidatorError,
+        WorkflowEvaluatorError,
     ]:
         assert issubclass(cls, EvaluatorError)
 

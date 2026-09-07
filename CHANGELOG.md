@@ -1,4 +1,15 @@
 ## [2026-09-06]
+### Evals, guardrails, observability
+- AgentProof remains an evaluation harness, not an agent runtime — it does not host subagents, skills, MCP servers, background agents, or PR bots
+- Added DeepEval `ToxicityMetric` to `LLMEvaluator` (lower-is-better, default threshold 0.1); `evaluate_all()` now returns four metrics
+- Added `GuardrailValidator` — PII (email/SSN/phone/Luhn card/API keys), prompt-injection phrases, policy substrings, MCP/tool allowlist
+- Added `WorkflowEvaluator` — scores recorded traces for subagent coverage, skill invocation, MCP allowlist, background job completion, PR-review gates
+- Added `EvalHarness` + `EvalCase` — suite runner that composes TestRunner, optional guardrails, Prometheus metrics, and `EvalTrace`
+- Added `MetricsRegistry` / `TraceStore` (`core/observability.py`) using `prometheus-client`; `TestRunner` records every result
+- Audit JSONL redacts PII in `details` and `error` before hash/write (`config.pii_redaction`, default True)
+- Added unit tests for safety, guardrails, workflow, observability/harness (479 unit tests total, all mocked)
+- Documentation: README, STATUS, TUTORIAL, CLAUDE.md, ARCHITECTURE.md, SCOPE.md, DESIGN.md, `.env.example` updated so they do not describe these components as unimplemented
+
 ### Phase 6 — Data layer
 - Implemented `PostgresIntegration` + `PostgresValidator` (`src/agentproof/integrations/postgres.py`) — asyncpg pool wrapper; schema integrity (tables/columns/types/constraints), agent-state persistence, transaction atomicity with injected failure + rollback probe, write latency vs `max_db_write_latency_ms` (default 200ms), silent-write detection (status-ok but row missing)
 - Implemented `RedisIntegration` + `RedisValidator` (`src/agentproof/integrations/redis.py`) — redis.asyncio wrapper; cache correctness via semantic equality (JSON/numeric/whitespace), TTL within `ttl_tolerance_seconds` (default 5s), opt-in expiry confirmation, cache invalidation after upstream update, session state via hash or JSON blob
