@@ -40,3 +40,6 @@ audit_logs/
 
 # Docs build
 docs/_build/
+
+# Local tutorial — not committed
+TUTORIAL.md

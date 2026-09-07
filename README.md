@@ -2,7 +2,7 @@
 
 AI systems reliability and evaluation platform by Ana Bruno, ThinkAstra Consulting.
 
-AgentProof evaluates non-deterministic AI systems — LLM outputs, RAG pipelines, multi-model routing, knowledge graph integrity, governance audit trails, and agentic workflows — where assertion-based checks are not sufficient.
+AgentProof evaluates non-deterministic AI systems: LLM outputs, RAG pipelines, multi-model routing, knowledge graph integrity, governance audit trails, and agentic workflows, where assertion-based checks are not sufficient.
 
 ---
 
