@@ -76,6 +76,10 @@ class GraphValidatorError(EvaluatorError):
     """Knowledge-graph integrity validation failure (Neo4j / Memgraph)."""
 
 
+class IngestionValidatorError(EvaluatorError):
+    """Nango connector / file-ingestion validation failure."""
+
+
 class AuditError(AgentProofError):
     """Audit logging failure.
 

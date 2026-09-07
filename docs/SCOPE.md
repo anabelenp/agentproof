@@ -5,15 +5,15 @@
 
 ## What AgentProof Is
 
-AgentProof is an enterprise-grade AI agent testing and evaluation framework built for organizations deploying agentic AI systems in production. It is designed specifically for the problems traditional QA tools cannot solve: non-deterministic LLM outputs, multi-model routing validation, knowledge graph integrity, retrieval quality, and governance audit trail verification.
+AgentProof is an AI systems reliability and evaluation platform built for organizations deploying agentic AI systems in production. It is designed for problems assertion-based tooling cannot solve: non-deterministic LLM outputs, multi-model routing validation, knowledge graph integrity, retrieval quality, and governance audit trail verification.
 
-AgentProof is built by Ana Bruno (ThinkAstra Consulting) — an AI QA specialist with 20+ years of enterprise test automation experience across financial services, cybersecurity, and enterprise software.
+AgentProof is built by Ana Bruno (ThinkAstra Consulting), with 20+ years of enterprise systems experience across financial services, cybersecurity, and enterprise software.
 
 ---
 
 ## The Problem AgentProof Solves
 
-Enterprise organizations are deploying AI agents that make real decisions — underwriting claims, surfacing executive findings, routing customer inquiries, processing financial data. Traditional QA frameworks assume deterministic outputs. AI agents don't give you that.
+Enterprise organizations are deploying AI agents that make real decisions — underwriting claims, surfacing executive findings, routing customer inquiries, processing financial data. Conventional software checks assume deterministic outputs. AI agents don't give you that.
 
 The result: companies ship AI systems they cannot test, cannot audit, and cannot trust.
 
@@ -40,11 +40,11 @@ The result: companies ship AI systems they cannot test, cannot audit, and cannot
 
 ## Target Users
 
-**Primary:** AI QA Engineers, SDETs, and Applied AI Engineers at companies deploying agentic AI systems in regulated or high-stakes environments
+**Primary:** Applied AI Engineers, ML platform engineers, and reliability engineers at companies deploying agentic AI systems in regulated or high-stakes environments
 
 **Secondary:** Forward Deployed Engineers and AI Solutions Engineers validating client deployments
 
-**Tertiary:** ThinkAstra Consulting clients needing AI system quality assurance as a service
+**Tertiary:** ThinkAstra Consulting clients needing AI systems reliability and evaluation as a service
 
 ---
 

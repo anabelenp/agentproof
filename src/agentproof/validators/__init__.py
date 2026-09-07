@@ -4,11 +4,14 @@ from agentproof.validators.data_layer import DataLayerValidator
 from agentproof.validators.governance import GovernanceValidator, OverrideEvent
 from agentproof.validators.graph import GraphValidator
 from agentproof.validators.guardrails import GuardrailValidator
+from agentproof.validators.ingestion import IngestionValidator, NangoValidator
 
 __all__ = [
     "DataLayerValidator",
     "GovernanceValidator",
     "GraphValidator",
     "GuardrailValidator",
+    "IngestionValidator",
+    "NangoValidator",
     "OverrideEvent",
 ]

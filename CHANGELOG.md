@@ -1,4 +1,15 @@
 ## [2026-09-06]
+### Positioning
+- Reframed AgentProof as an AI systems reliability and evaluation platform
+- Removed testing-org / assertion-tooling contrast language from README, CLAUDE.md, SCOPE, DESIGN, TUTORIAL notes, package metadata, and module docstrings
+
+### Phase 8 — Connector / ingestion validation
+- Implemented `NangoIntegration` (`src/agentproof/integrations/nango.py`) — httpx wrapper for `/records`, `/sync/trigger`, `/connection/{id}`; retries 429 and 5xx
+- Implemented `IngestionValidator` (`src/agentproof/validators/ingestion.py`, alias `NangoValidator`) — connector reliability, silent-failure detection (drop / malform / auth expire), completeness (threshold 0.999), schema drift (alert vs crash vs silent), OAuth refresh without data loss, rate-limit backoff, audit continuity (source → Nango → audit), file ingestion (pdf/docx/xlsx/pptx/csv)
+- In-memory `records` / `trail` / `extracted` keep unit tests off the network
+- Added `nango_api_key`, `nango_base_url`, `ingestion_completeness_threshold`; added `IngestionValidatorError`
+- Added unit tests: `tests/unit/test_nango_validator.py` including 10 schema-drift scenarios (569 unit tests total, all mocked)
+
 ### Phase 7 — Graph validation
 - Implemented `Neo4jIntegration` (`src/agentproof/integrations/neo4j.py`) — async Bolt wrapper (`query` / `execute` / close), retry on `ServiceUnavailable` / `SessionExpired` / `TransientError`. Memgraph-compatible.
 - Implemented `GraphValidator` (`src/agentproof/validators/graph.py`) — entity resolution (sources collapse to `expected_node_count`, default threshold 0.95), relationship type+direction (zero-tolerance), temporal event order, known-query node-id correctness (F1, exact set for pass), failure-mode surfacing (missing / duplicate / contradictory / malformed)
@@ -62,14 +73,14 @@
 
 ## [2026-05-25]
 ### Documentation
-- Added `TUTORIAL.md` — comprehensive onboarding guide for QA engineers new to AI evaluation
-  - Covers all 17 tech stack components with plain-English explanations and traditional QA analogies
+- Added `TUTORIAL.md` — onboarding guide for engineers evaluating AI systems
+  - Covers all 17 tech stack components with plain-English explanations
   - Explains non-determinism, behavioral contracts, LLM-as-a-Judge, RAG, prompt regression, multi-model routing
   - Full architecture walkthrough with three ASCII diagrams: data flow, evaluator hierarchy, CI/CD trigger matrix
   - Deep dive into all six Phase 1 components with complete field references and usage examples
   - Step-by-step custom evaluator tutorial with complete, runnable code and full test suite
   - Phase 2 preview — what `LLMEvaluator` will add and why it is the first demonstrable milestone
-  - AI TESTING DIFFERENCE callout blocks wherever AI evaluation fundamentally differs from traditional QA
+  - Callout blocks wherever AI evaluation differs from assertion-based software checks
   - Accuracy-constrained: only documents Phase 1 as complete; all other phases clearly marked not yet implemented
 
 ### Phase 1 — Core Infrastructure

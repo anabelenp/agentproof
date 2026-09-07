@@ -6,7 +6,7 @@
 ## Design Philosophy
 
 ### 1. Behavioral contracts over string assertions
-LLM outputs cannot be tested with `assert output == expected`. AgentProof tests *behavioral contracts*: does the output stay within defined topic boundaries? Does it meet minimum quality thresholds? Does it convey semantically correct meaning regardless of phrasing? This is the foundational shift from traditional QA thinking.
+LLM outputs cannot be checked with `assert output == expected`. AgentProof evaluates *behavioral contracts*: does the output stay within defined topic boundaries? Does it meet minimum quality thresholds? Does it convey semantically correct meaning regardless of phrasing? That is the shift from assertion-based software checks to AI systems reliability.
 
 ### 2. Fail gracefully, always
 One failing evaluator must never abort the pipeline. Enterprise AI systems have many interdependent components — a single point of failure in testing is unacceptable. Every evaluator catches its own errors, logs them, and returns a structured failure result. The pipeline continues.

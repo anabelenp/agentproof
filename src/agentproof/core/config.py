@@ -1,4 +1,4 @@
-"""AgentProofConfig — central configuration for the evaluation framework.
+"""AgentProofConfig — central configuration for the evaluation platform.
 
 Merges environment variables (.env file + shell env) with sensible defaults.
 All secrets come from env vars only — never hardcoded.
@@ -49,6 +49,8 @@ class AgentProofConfig(BaseSettings):
     neo4j_user: str = "neo4j"
     neo4j_password: str | None = None
     neo4j_database: str = "neo4j"
+    nango_api_key: str | None = None
+    nango_base_url: str = "https://api.nango.dev"
 
     # ── Audit ─────────────────────────────────────────────────────────────────
     audit_log_dir: Path = Path("./audit_logs")
@@ -62,6 +64,7 @@ class AgentProofConfig(BaseSettings):
     contextual_precision_threshold: float = Field(default=0.8, ge=0.0, le=1.0)
     toxicity_threshold: float = Field(default=0.1, ge=0.0, le=1.0)
     entity_resolution_threshold: float = Field(default=0.95, ge=0.0, le=1.0)
+    ingestion_completeness_threshold: float = Field(default=0.999, ge=0.0, le=1.0)
 
     # ── SLA ───────────────────────────────────────────────────────────────────
     max_ttft_seconds: float = Field(default=2.0, gt=0)

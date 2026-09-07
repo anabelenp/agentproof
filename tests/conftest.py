@@ -97,6 +97,21 @@ def mock_neo4j():
 
 
 @pytest.fixture
+def mock_nango():
+    """Patch httpx.AsyncClient so unit tests never open a Nango connection."""
+    with patch("agentproof.integrations.nango.httpx.AsyncClient") as mocked:
+        client = AsyncMock()
+        response = MagicMock()
+        response.status_code = 200
+        response.content = b"{}"
+        response.json = MagicMock(return_value={"records": []})
+        client.request = AsyncMock(return_value=response)
+        client.aclose = AsyncMock()
+        mocked.return_value = client
+        yield mocked
+
+
+@pytest.fixture
 def mock_postgres():
     """Patch asyncpg.create_pool so unit tests never open a network connection."""
     with patch(

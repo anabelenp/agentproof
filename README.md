@@ -1,8 +1,8 @@
 # AgentProof
 
-Enterprise-grade AI agent testing and evaluation framework by Ana Bruno, ThinkAstra Consulting.
+AI systems reliability and evaluation platform by Ana Bruno, ThinkAstra Consulting.
 
-AgentProof tests what traditional assertion-based testing cannot: non-deterministic AI outputs across LLM quality, RAG pipelines, multi-model routing, knowledge graph integrity, and governance audit trails.
+AgentProof evaluates non-deterministic AI systems — LLM outputs, RAG pipelines, multi-model routing, knowledge graph integrity, governance audit trails, and agentic workflows — where assertion-based checks are not sufficient.
 
 ---
 
@@ -17,7 +17,7 @@ AgentProof tests what traditional assertion-based testing cannot: non-determinis
 | Phase 5 | Governance validators, streaming response validation | Complete |
 | Phase 6 | Data layer — PostgreSQL + Redis validation | Complete |
 | Phase 7 | Graph validation — Neo4j / Memgraph | Complete |
-| Phase 8 | Connector validation — Nango ingestion | Not started |
+| Phase 8 | Connector validation — Nango ingestion | Complete |
 | Phase 9 | Infrastructure validation — Docker, GCP, CI | Not started |
 | Phase 10 | CLI (Typer), reporters (Rich + JSON), examples | Not started |
 
@@ -60,14 +60,16 @@ agentproof/
 │   │   ├── governance.py  # GovernanceValidator (trail, override, separation)
 │   │   ├── data_layer.py  # DataLayerValidator (cache vs source consistency)
 │   │   ├── guardrails.py  # PII, injection, policy, tool allowlist
-│   │   └── graph.py       # GraphValidator (entity resolution, relationships)
+│   │   ├── graph.py       # GraphValidator (entity resolution, relationships)
+│   │   └── ingestion.py   # IngestionValidator (Nango + files)
 │   └── integrations/
 │       ├── anthropic.py   # AnthropicIntegration (async SDK wrapper)
 │       ├── qdrant.py      # QdrantIntegration + QdrantEvaluator
 │       ├── litellm.py     # LiteLLMIntegration (async acompletion wrapper)
 │       ├── postgres.py    # PostgresIntegration + PostgresValidator
 │       ├── redis.py       # RedisIntegration + RedisValidator
-│       └── neo4j.py       # Neo4jIntegration (Bolt / Memgraph)
+│       ├── neo4j.py       # Neo4jIntegration (Bolt / Memgraph)
+│       └── nango.py       # NangoIntegration (connector HTTP API)
 └── tests/
     ├── unit/              # All mocked, fast — runs on every commit
     ├── integration/       # Requires live services — runs on PR merge
@@ -87,4 +89,4 @@ agentproof/
 ---
 
 **Owner:** Ana Bruno — ThinkAstra Consulting, San Diego CA  
-**Target markets:** Insurance, finance, healthcare — enterprise agentic AI QA
+**Target markets:** Insurance, finance, healthcare — enterprise AI systems reliability

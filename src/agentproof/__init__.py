@@ -1,7 +1,7 @@
-"""AgentProof — Enterprise AI agent testing and evaluation framework.
+"""AgentProof — AI systems reliability and evaluation platform.
 
 Built by Ana Bruno, ThinkAstra Consulting.
-Tests non-deterministic AI outputs across LLM quality, RAG pipelines,
+Evaluates non-deterministic AI outputs across LLM quality, RAG pipelines,
 multi-model routing, knowledge graph integrity, and governance audit trails.
 """
 

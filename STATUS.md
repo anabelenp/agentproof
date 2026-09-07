@@ -25,13 +25,15 @@
 - `src/agentproof/validators/data_layer.py` — `DataLayerValidator` (dispatch + cache vs PostgreSQL source consistency), tested
 - `src/agentproof/integrations/neo4j.py` — `Neo4jIntegration` async Bolt wrapper, tested
 - `src/agentproof/validators/graph.py` — `GraphValidator` (entity resolution, relationships, temporal order, query correctness, failure modes), tested
-- `tests/unit/` — 517 unit tests, all mocked, all passing
+- `src/agentproof/integrations/nango.py` — `NangoIntegration` async HTTP wrapper, tested
+- `src/agentproof/validators/ingestion.py` — `IngestionValidator` (reliability, silent failure, completeness, schema drift, auth, rate limit, audit continuity, files), tested
+- `tests/unit/` — 569 unit tests, all mocked, all passing
 
 ### Partially implemented:
 - None
 
 ### Not started:
-- Phase 8–10: connectors, infrastructure, CLI/examples
+- Phase 9–10: infrastructure, CLI/examples
 
 ### Next priority:
-Phase 8 — `src/agentproof/integrations/nango.py` + `src/agentproof/validators/ingestion.py`
+Phase 9 — `src/agentproof/integrations/docker.py` + `src/agentproof/integrations/gcp.py` + `src/agentproof/validators/infrastructure.py`

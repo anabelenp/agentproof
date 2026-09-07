@@ -17,6 +17,7 @@ def test_default_thresholds():
     assert config.contextual_precision_threshold == 0.8
     assert config.toxicity_threshold == 0.1
     assert config.entity_resolution_threshold == 0.95
+    assert config.ingestion_completeness_threshold == 0.999
     assert config.pii_redaction is True
 
 
@@ -39,6 +40,8 @@ def test_default_data_layer_urls(monkeypatch):
     monkeypatch.delenv("NEO4J_URL", raising=False)
     monkeypatch.delenv("NEO4J_USER", raising=False)
     monkeypatch.delenv("NEO4J_PASSWORD", raising=False)
+    monkeypatch.delenv("NANGO_BASE_URL", raising=False)
+    monkeypatch.delenv("NANGO_API_KEY", raising=False)
     config = AgentProofConfig()
     assert config.postgres_url == "postgresql://localhost:5432/agentproof_test"
     assert config.postgres_pool_size == 5
@@ -47,6 +50,7 @@ def test_default_data_layer_urls(monkeypatch):
     assert config.neo4j_url == "bolt://localhost:7687"
     assert config.neo4j_user == "neo4j"
     assert config.neo4j_database == "neo4j"
+    assert config.nango_base_url == "https://api.nango.dev"
 
 
 def test_default_judge_model():
@@ -65,10 +69,12 @@ def test_default_api_keys_are_none(monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("QDRANT_API_KEY", raising=False)
+    monkeypatch.delenv("NANGO_API_KEY", raising=False)
     config = AgentProofConfig()
     assert config.anthropic_api_key is None
     assert config.openai_api_key is None
     assert config.qdrant_api_key is None
+    assert config.nango_api_key is None
 
 
 def test_audit_log_dir_is_path():

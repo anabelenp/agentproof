@@ -5,7 +5,7 @@
 
 ## What This Project Is
 
-AgentProof is an enterprise-grade AI agent testing and evaluation framework built by Ana Bruno (ThinkAstra Consulting). It tests non-deterministic AI outputs — LLM responses, RAG pipelines, multi-model routing, knowledge graph integrity, and governance audit trails — in environments where traditional assertion-based testing fails.
+AgentProof is an AI systems reliability and evaluation platform built by Ana Bruno (ThinkAstra Consulting). It evaluates non-deterministic AI outputs — LLM responses, RAG pipelines, multi-model routing, knowledge graph integrity, and governance audit trails — in environments where assertion-based checks fail.
 
 **This is both a portfolio project and a potential ThinkAstra product.**
 Every component must be accurate, defensible, and demo-ready.
@@ -308,7 +308,7 @@ This project is used in technical interviews. The following rules apply:
 
 **Owner:** Ana Bruno — ThinkAstra Consulting  
 **Purpose:** Portfolio project + potential ThinkAstra product  
-**Primary target:** Enterprise agentic AI QA — insurance, finance, healthcare  
-**Competitive positioning:** Tests what no traditional QA tool can — non-deterministic agent outputs, multi-model routing, knowledge graph integrity, governance audit trails  
+**Primary target:** Enterprise AI systems reliability — insurance, finance, healthcare  
+**Competitive positioning:** Evaluates what assertion-based tooling cannot — non-deterministic agent outputs, multi-model routing, knowledge graph integrity, governance audit trails  
 **GitHub:** github.com/anabelenp  
 **Contact:** ThinkAstra Consulting, San Diego CA

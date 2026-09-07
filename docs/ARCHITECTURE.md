@@ -53,7 +53,7 @@ agentproof/
 │       │   ├── data_layer.py       # DataLayerValidator (Postgres + Redis coordinator)
 │       │   ├── guardrails.py       # PII, injection, policy, tool allowlist
 │       │   ├── graph.py            # GraphValidator (entity resolution, relationships)
-│       │   ├── ingestion.py        # IngestionValidator (connectors, pipelines) — not started
+│       │   ├── ingestion.py        # IngestionValidator (Nango + file ingestion)
 │       │   └── trust.py            # TrustValidator (executive output clarity) — not started
 │       │
 │       ├── integrations/
@@ -62,7 +62,7 @@ agentproof/
 │       │   ├── postgres.py         # PostgreSQL schema + state validation
 │       │   ├── redis.py            # Redis cache correctness + TTL validation
 │       │   ├── neo4j.py            # Neo4jIntegration (async Bolt / Memgraph)
-│       │   ├── nango.py            # Nango connector reliability validator
+│       │   ├── nango.py            # NangoIntegration (connector HTTP API)
 │       │   ├── gcp.py              # GCP Cloud Run + Firebase validation
 │       │   ├── docker.py           # Docker container health validation
 │       │   ├── litellm.py          # LiteLLM routing client wrapper
@@ -95,7 +95,8 @@ agentproof/
 │   │   ├── test_guardrail_validator.py
 │   │   ├── test_workflow_evaluator.py
 │   │   ├── test_observability.py
-│   │   └── test_graph_validator.py
+│   │   ├── test_graph_validator.py
+│   │   └── test_nango_validator.py
 │   │
 │   ├── integration/
 │   │   ├── test_litellm_routing.py         # Requires LiteLLM + API keys
@@ -180,8 +181,8 @@ CLI (cli.py)
             │       └── Neo4jIntegration (integrations/neo4j.py)
             │       └── QdrantEvaluator (integrations/qdrant.py)
             │
-            ├── ConnectorValidator (validators/ingestion.py)      # not started
-            │       └── NangoValidator (integrations/nango.py)
+            ├── IngestionValidator (validators/ingestion.py)
+            │       └── NangoIntegration (integrations/nango.py)
             │
             ├── InfrastructureValidator (validators/infrastructure.py)  # not started
             │       └── DockerValidator (integrations/docker.py)

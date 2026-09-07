@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "agentproof"
 version = "0.1.0"
-description = "Enterprise-grade AI agent testing and evaluation framework"
+description = "AI systems reliability and evaluation platform"
 authors = ["Ana Bruno <aportoca@protonmail.com>"]
 readme = "README.md"
 packages = [{include = "agentproof", from = "src"}]
