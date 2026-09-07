@@ -16,6 +16,7 @@ def test_default_thresholds():
     assert config.contextual_recall_threshold == 0.7
     assert config.contextual_precision_threshold == 0.8
     assert config.toxicity_threshold == 0.1
+    assert config.entity_resolution_threshold == 0.95
     assert config.pii_redaction is True
 
 
@@ -35,11 +36,17 @@ def test_default_data_layer_urls(monkeypatch):
     monkeypatch.delenv("REDIS_URL", raising=False)
     monkeypatch.delenv("POSTGRES_POOL_SIZE", raising=False)
     monkeypatch.delenv("REDIS_TTL_SECONDS", raising=False)
+    monkeypatch.delenv("NEO4J_URL", raising=False)
+    monkeypatch.delenv("NEO4J_USER", raising=False)
+    monkeypatch.delenv("NEO4J_PASSWORD", raising=False)
     config = AgentProofConfig()
     assert config.postgres_url == "postgresql://localhost:5432/agentproof_test"
     assert config.postgres_pool_size == 5
     assert config.redis_url == "redis://localhost:6379"
     assert config.redis_ttl_seconds == 3600
+    assert config.neo4j_url == "bolt://localhost:7687"
+    assert config.neo4j_user == "neo4j"
+    assert config.neo4j_database == "neo4j"
 
 
 def test_default_judge_model():

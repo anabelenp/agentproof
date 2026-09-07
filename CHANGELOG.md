@@ -1,4 +1,11 @@
 ## [2026-09-06]
+### Phase 7 — Graph validation
+- Implemented `Neo4jIntegration` (`src/agentproof/integrations/neo4j.py`) — async Bolt wrapper (`query` / `execute` / close), retry on `ServiceUnavailable` / `SessionExpired` / `TransientError`. Memgraph-compatible.
+- Implemented `GraphValidator` (`src/agentproof/validators/graph.py`) — entity resolution (sources collapse to `expected_node_count`, default threshold 0.95), relationship type+direction (zero-tolerance), temporal event order, known-query node-id correctness (F1, exact set for pass), failure-mode surfacing (missing / duplicate / contradictory / malformed)
+- In-memory `resolved_nodes` / `relationships` / `events` / `rows` / `detected` keep unit tests off the network
+- Added `neo4j_url`, `neo4j_user`, `neo4j_password`, `neo4j_database`, `entity_resolution_threshold` to `AgentProofConfig`; added `neo4j` dependency and `GraphValidatorError`
+- Added unit tests: `tests/unit/test_graph_validator.py` (517 unit tests total, all mocked)
+
 ### Evals, guardrails, observability
 - AgentProof remains an evaluation harness, not an agent runtime — it does not host subagents, skills, MCP servers, background agents, or PR bots
 - Added DeepEval `ToxicityMetric` to `LLMEvaluator` (lower-is-better, default threshold 0.1); `evaluate_all()` now returns four metrics

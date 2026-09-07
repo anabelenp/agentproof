@@ -73,6 +73,30 @@ def mock_litellm():
 
 
 @pytest.fixture
+def mock_neo4j():
+    """Patch AsyncGraphDatabase.driver so unit tests never open a Bolt connection."""
+    with patch("agentproof.integrations.neo4j.AsyncGraphDatabase.driver") as mocked:
+        driver = MagicMock()
+        session = AsyncMock()
+        result = MagicMock()
+
+        async def _empty():
+            if False:
+                yield None
+
+        result.__aiter__ = lambda self: _empty()
+        result.consume = AsyncMock()
+        session.run = AsyncMock(return_value=result)
+        acquire = MagicMock()
+        acquire.__aenter__ = AsyncMock(return_value=session)
+        acquire.__aexit__ = AsyncMock(return_value=False)
+        driver.session = MagicMock(return_value=acquire)
+        driver.close = AsyncMock()
+        mocked.return_value = driver
+        yield mocked
+
+
+@pytest.fixture
 def mock_postgres():
     """Patch asyncpg.create_pool so unit tests never open a network connection."""
     with patch(

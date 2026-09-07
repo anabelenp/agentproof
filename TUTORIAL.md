@@ -272,13 +272,13 @@ agentproof/
 │   │   ├── observability.py     # Prometheus MetricsRegistry + TraceStore (COMPLETE)
 │   │   ├── base.py              # BaseEvaluator (abstract) + ValidationResult
 │   │   └── runner.py            # TestRunner + TestRunSummary
-│   ├── integrations/            # Phases 2–6 complete; 7–9 not started
+│   ├── integrations/            # Phases 2–7 complete; 8–9 not started
 │   │   ├── anthropic.py         # Async Anthropic SDK wrapper (Phase 2 — COMPLETE)
 │   │   ├── litellm.py           # LiteLLM routing wrapper (Phase 4 — COMPLETE)
 │   │   ├── qdrant.py            # QdrantIntegration + QdrantEvaluator (Phase 3 — COMPLETE)
 │   │   ├── postgres.py          # PostgresIntegration + PostgresValidator (Phase 6 — COMPLETE)
 │   │   ├── redis.py             # RedisIntegration + RedisValidator (Phase 6 — COMPLETE)
-│   │   ├── neo4j.py             # Neo4j driver wrapper (Phase 7)
+│   │   ├── neo4j.py             # Neo4jIntegration async Bolt wrapper (Phase 7 — COMPLETE)
 │   │   ├── nango.py             # Nango connector client (Phase 8)
 │   │   ├── docker.py            # Docker SDK wrapper (Phase 9)
 │   │   └── gcp.py               # GCP Cloud Run client (Phase 9)
@@ -289,13 +289,14 @@ agentproof/
 │   │   ├── streaming.py         # StreamingValidator: TTFT, throughput (COMPLETE)
 │   │   ├── harness.py           # EvalHarness + EvalCase suite runner (COMPLETE)
 │   │   └── workflow.py          # WorkflowEvaluator: recorded agentic traces (COMPLETE)
-│   ├── validators/              # Phases 5–6 complete + guardrails; 7–8 not started
+│   ├── validators/              # Phases 5–7 complete + guardrails; 8 not started
 │   │   ├── governance.py        # GovernanceValidator: audit trail completeness (COMPLETE)
 │   │   ├── data_layer.py        # DataLayerValidator: cache vs source consistency (COMPLETE)
-│   │   └── guardrails.py        # PII, injection, policy, tool allowlist (COMPLETE)
+│   │   ├── guardrails.py        # PII, injection, policy, tool allowlist (COMPLETE)
+│   │   └── graph.py             # GraphValidator: entity resolution, relationships (COMPLETE)
 │   └── cli.py                   # Phase 10 — NOT YET IMPLEMENTED
 ├── tests/
-│   ├── unit/                    # Phases 1–6 + evals/guardrails/observability — mocked, run on every commit
+│   ├── unit/                    # Phases 1–7 + evals/guardrails/observability — mocked, run on every commit
 │   ├── integration/             # Future — requires live services
 │   └── regression/              # Future — canonical suite, runs on schedule
 ├── audit_logs/                  # Created at runtime — not committed to git
@@ -1185,10 +1186,12 @@ Phase 6 is complete: `PostgresValidator` checks schema integrity, agent-state pe
 
 Evals, guardrails, and observability (complete, tested): `EvalHarness` runs suites of `EvalCase`s. `GuardrailValidator` blocks PII, prompt injection, policy phrases, and off-allowlist tools. `WorkflowEvaluator` scores a *recorded* agentic trace (subagents, skills, MCP tools, background jobs, PR-review gates) — AgentProof does not host those runtimes. `MetricsRegistry` exports Prometheus text; `TraceStore` keeps in-memory spans. Audit JSONL redacts PII before hashing.
 
-Next: Phase 7 — Neo4j / Memgraph graph validation.
+Phase 7 is complete: `GraphValidator` checks entity resolution (sources collapse to one node), relationship type and direction, temporal event order, known Cypher result ids, and whether injected anomalies (missing / duplicate / contradictory / malformed) are surfaced. `Neo4jIntegration` talks Bolt (Neo4j and Memgraph).
+
+Next: Phase 8 — Nango connector / ingestion validation.
 
 ---
 
 *AgentProof — Enterprise-grade AI Agent Testing and Evaluation Framework*
 *Ana Bruno — ThinkAstra Consulting, San Diego CA*
-*Phases 1–6 complete and tested, plus evals/guardrails/observability. Phase 7 not started.*
+*Phases 1–7 complete and tested. Phase 8 not started.*

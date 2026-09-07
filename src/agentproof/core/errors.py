@@ -72,6 +72,10 @@ class WorkflowEvaluatorError(EvaluatorError):
     """Agentic workflow trace evaluation failure."""
 
 
+class GraphValidatorError(EvaluatorError):
+    """Knowledge-graph integrity validation failure (Neo4j / Memgraph)."""
+
+
 class AuditError(AgentProofError):
     """Audit logging failure.
 

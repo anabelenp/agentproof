@@ -45,6 +45,10 @@ class AgentProofConfig(BaseSettings):
     postgres_pool_size: int = Field(default=5, ge=1, le=50)
     redis_url: str = "redis://localhost:6379"
     redis_ttl_seconds: int = Field(default=3600, ge=0)
+    neo4j_url: str = "bolt://localhost:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str | None = None
+    neo4j_database: str = "neo4j"
 
     # ── Audit ─────────────────────────────────────────────────────────────────
     audit_log_dir: Path = Path("./audit_logs")
@@ -57,6 +61,7 @@ class AgentProofConfig(BaseSettings):
     contextual_recall_threshold: float = Field(default=0.7, ge=0.0, le=1.0)
     contextual_precision_threshold: float = Field(default=0.8, ge=0.0, le=1.0)
     toxicity_threshold: float = Field(default=0.1, ge=0.0, le=1.0)
+    entity_resolution_threshold: float = Field(default=0.95, ge=0.0, le=1.0)
 
     # ── SLA ───────────────────────────────────────────────────────────────────
     max_ttft_seconds: float = Field(default=2.0, gt=0)

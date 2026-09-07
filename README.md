@@ -16,7 +16,7 @@ AgentProof tests what traditional assertion-based testing cannot: non-determinis
 | Phase 4 | Routing validation — LiteLLM multi-model routing | Complete |
 | Phase 5 | Governance validators, streaming response validation | Complete |
 | Phase 6 | Data layer — PostgreSQL + Redis validation | Complete |
-| Phase 7 | Graph validation — Neo4j / Memgraph | Not started |
+| Phase 7 | Graph validation — Neo4j / Memgraph | Complete |
 | Phase 8 | Connector validation — Nango ingestion | Not started |
 | Phase 9 | Infrastructure validation — Docker, GCP, CI | Not started |
 | Phase 10 | CLI (Typer), reporters (Rich + JSON), examples | Not started |
@@ -59,13 +59,15 @@ agentproof/
 │   ├── validators/
 │   │   ├── governance.py  # GovernanceValidator (trail, override, separation)
 │   │   ├── data_layer.py  # DataLayerValidator (cache vs source consistency)
-│   │   └── guardrails.py  # PII, injection, policy, tool allowlist
+│   │   ├── guardrails.py  # PII, injection, policy, tool allowlist
+│   │   └── graph.py       # GraphValidator (entity resolution, relationships)
 │   └── integrations/
 │       ├── anthropic.py   # AnthropicIntegration (async SDK wrapper)
 │       ├── qdrant.py      # QdrantIntegration + QdrantEvaluator
 │       ├── litellm.py     # LiteLLMIntegration (async acompletion wrapper)
 │       ├── postgres.py    # PostgresIntegration + PostgresValidator
-│       └── redis.py       # RedisIntegration + RedisValidator
+│       ├── redis.py       # RedisIntegration + RedisValidator
+│       └── neo4j.py       # Neo4jIntegration (Bolt / Memgraph)
 └── tests/
     ├── unit/              # All mocked, fast — runs on every commit
     ├── integration/       # Requires live services — runs on PR merge

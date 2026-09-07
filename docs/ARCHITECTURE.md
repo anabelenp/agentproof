@@ -52,7 +52,7 @@ agentproof/
 │       │   ├── governance.py       # GovernanceValidator (audit trail, override)
 │       │   ├── data_layer.py       # DataLayerValidator (Postgres + Redis coordinator)
 │       │   ├── guardrails.py       # PII, injection, policy, tool allowlist
-│       │   ├── graph.py            # GraphValidator (entity resolution, relationships) — not started
+│       │   ├── graph.py            # GraphValidator (entity resolution, relationships)
 │       │   ├── ingestion.py        # IngestionValidator (connectors, pipelines) — not started
 │       │   └── trust.py            # TrustValidator (executive output clarity) — not started
 │       │
@@ -61,7 +61,7 @@ agentproof/
 │       │   ├── qdrant.py           # QdrantEvaluator
 │       │   ├── postgres.py         # PostgreSQL schema + state validation
 │       │   ├── redis.py            # Redis cache correctness + TTL validation
-│       │   ├── neo4j.py            # Neo4j/Memgraph graph query validator
+│       │   ├── neo4j.py            # Neo4jIntegration (async Bolt / Memgraph)
 │       │   ├── nango.py            # Nango connector reliability validator
 │       │   ├── gcp.py              # GCP Cloud Run + Firebase validation
 │       │   ├── docker.py           # Docker container health validation
@@ -94,7 +94,8 @@ agentproof/
 │   │   ├── test_safety.py
 │   │   ├── test_guardrail_validator.py
 │   │   ├── test_workflow_evaluator.py
-│   │   └── test_observability.py
+│   │   ├── test_observability.py
+│   │   └── test_graph_validator.py
 │   │
 │   ├── integration/
 │   │   ├── test_litellm_routing.py         # Requires LiteLLM + API keys
@@ -175,8 +176,8 @@ CLI (cli.py)
             │       └── PostgresValidator (integrations/postgres.py)
             │       └── RedisValidator (integrations/redis.py)
             │
-            ├── GraphValidator (validators/graph.py)              # not started
-            │       └── Neo4jValidator (integrations/neo4j.py)
+            ├── GraphValidator (validators/graph.py)
+            │       └── Neo4jIntegration (integrations/neo4j.py)
             │       └── QdrantEvaluator (integrations/qdrant.py)
             │
             ├── ConnectorValidator (validators/ingestion.py)      # not started
